@@ -1,20 +1,38 @@
 import React from "react";
-import logo from "../../assets/images/logo.svg";
-import { Col, Container, Row } from "reactstrap";
+import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+import TabsPanel from "../TabsPanel/TabsPanel";
+
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    root: {
+      flexGrow: 1,
+      textTransform: "uppercase"
+    },
+    menuButton: {
+      marginRight: theme.spacing(2)
+    },
+    title: {
+      flexGrow: 1
+    }
+  })
+);
 
 export const Header = () => {
-	return (
-		<header className="App-header">
-			<Container className="mb-4">
-				<Row>
-					<Col sm={2}>
-						<img src={logo} className="h-100 w-100" alt="logo" />
-					</Col>
-					<Col sm={9} className="mb-0 d-flex align-items-center">
-						<h1 className="mb-0 mx-auto">Image Data Base</h1>
-					</Col>
-				</Row>
-			</Container>
-		</header>
-	);
+  const classes = useStyles();
+
+  return (
+    <header className="App-header">
+      <div className={classes.root}>
+        <AppBar position="static">
+          <Toolbar>
+            <Typography variant="h5">Image Data Base</Typography>
+          </Toolbar>
+					<TabsPanel />
+        </AppBar>
+      </div>
+    </header>
+  );
 };

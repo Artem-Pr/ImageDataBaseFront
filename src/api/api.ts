@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from "axios";
+import { File, ExifData } from "../types";
 
 const instance = axios.create({
   baseURL: "http://localhost:5000",
@@ -8,7 +9,7 @@ const instance = axios.create({
 });
 
 export const mainApi = {
-  sendPhotos(files: any[], keywords: string[][]): Promise<AxiosResponse<any>> {
+  sendPhotos(files: File[], exifDataArr: ExifData[]): Promise<AxiosResponse<any>> {
     // const code = Math.floor(Math.random() * 1000000)
     // 	.toString()
     // 	.padStart(6, "0");
@@ -20,15 +21,13 @@ export const mainApi = {
       formData.append("filedata", file);
     });
 
-    debugger
-
     // keywords.forEach((keywordsItem: any, i: number) => {
     //   const arr = keywordsItem.split(", ");
     //   keywordsToArr.push(arr);
     // });
 
     // const keywordsToString = JSON.stringify(keywordsToArr);
-    formData.append("keywords", JSON.stringify(keywords));
+    formData.append("exifDataArr", JSON.stringify(exifDataArr));
     return instance.post("/upload", formData);
   }
 };
