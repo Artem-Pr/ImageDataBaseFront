@@ -22,25 +22,28 @@ const useStyles = makeStyles((theme: Theme) =>
 )
 
 const extractDate = async (file: File) => {
+	const exifData: ExifData = {
+		changeDate: file.lastModifiedDate || new Date(),
+	}
+
 	try {
 		const { exif, iptc } = await loadImage(file, { meta: true })
 		const keywords: string = iptc?.getText('Keywords')
 		const rawOriginalDate = exif && exif[306]
 
-		const exifData: ExifData = {}
 		if (keywords && keywords !== 'undefined') {
 			exifData.keywords = keywords.split(', ')
 		}
 		if (rawOriginalDate) {
 			// @ts-ignore
 			exifData.originalDate = moment(rawOriginalDate, 'YYYY:MM:DD hh:mm:ss')._d
-		} else {
-			exifData.changeDate = file.lastModifiedDate
 		}
+		// console.log('exif', exif)
 		return exifData
 	} catch (error) {
 		console.log(`${file.name} не имеет exif`)
-		return { error: 'LoadImage parsing error' }
+		exifData.error = 'LoadImage parsing error'
+		return exifData
 	}
 }
 
@@ -64,7 +67,7 @@ export const UploadPage = () => {
 		},
 	})
 
-	const getImageData = (imgArr: any[]) => {
+	const getImageData = (imgArr: File[]) => {
 		const exifDataArrPromise = imgArr.map((file) => extractDate(file))
 
 		Promise.all(exifDataArrPromise).then((exifDataArr) =>
@@ -72,7 +75,9 @@ export const UploadPage = () => {
 		)
 	}
 
-	const handleSubmit = async (e: any) => {
+	const handleSubmit = async (e: React.MouseEvent<HTMLElement>) => {
+		e.preventDefault()
+
 		if (files.length === 0) return
 		try {
 			await mainApi.sendPhotos(files, exifDataArr)
@@ -85,10 +90,6 @@ export const UploadPage = () => {
 			console.error(error)
 		}
 	}
-
-	useEffect(() => {
-		console.log('exifData', exifDataArr)
-	}, [exifDataArr])
 
 	useEffect(() => {
 		getImageData(files)
@@ -111,7 +112,11 @@ export const UploadPage = () => {
 				)}
 			</div>
 
-			{files.length ? <TitlebarGridList files={files} /> : ''}
+			{files.length ? (
+				<TitlebarGridList files={files} exif={exifDataArr} />
+			) : (
+				''
+			)}
 
 			<div className={classes.root}>
 				{uploadingError ? (

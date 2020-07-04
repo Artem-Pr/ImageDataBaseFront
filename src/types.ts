@@ -12,8 +12,8 @@ export interface File {
 }
 
 export interface ExifData {
+  changeDate: Date
   keywords?: string[]
   originalDate?: Date
-  changeDate?: Date
   error?: string
 }
