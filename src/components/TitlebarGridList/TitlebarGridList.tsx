@@ -6,16 +6,9 @@ import GridListTileBar from '@material-ui/core/GridListTileBar'
 import IconButton from '@material-ui/core/IconButton'
 import InfoIcon from '@material-ui/icons/Info'
 import Drawer from '@material-ui/core/Drawer'
-import List from '@material-ui/core/List'
-import Divider from '@material-ui/core/Divider'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
-import ListItemText from '@material-ui/core/ListItemText'
-import MenuBookIcon from '@material-ui/icons/MenuBook'
-import SettingsIcon from '@material-ui/icons/Settings'
-import TextField from '@material-ui/core/TextField'
 import { File, ExifData } from '../../types'
 import moment from 'moment'
+import DrawerMenu from '../DrawerMenu/DrawerMenu'
 
 interface Props {
 	files: File[]
@@ -26,15 +19,6 @@ interface Drawer {
 	isOpen: boolean
 	file: File | null
 	exif: ExifData | null
-}
-
-// interface Exif extends ExifData {
-//   changeDate: Date
-// }
-
-const formatDate = (date: Date | undefined): string => {
-	if (!date) return '-'
-	return moment(date).format('DD.MM.YYYY')
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -54,38 +38,9 @@ const useStyles = makeStyles((theme: Theme) =>
 		icon: {
 			color: 'rgba(255, 255, 255, 0.54)',
 		},
-		list: {
-			minWidth: 250,
-			width: 'auto',
-		},
-		name: {
-			maxWidth: 50,
-			width: 50,
-		},
-		date: {
-			maxWidth: 100,
-			width: 100,
-		},
 	}),
 )
 
-/**
- * The example data is structured as follows:
- *
- * import image from 'path/to/image.jpg';
- * [etc...]
- *
- * const tileData = [
- *   {
- *     img: image,
- *     title: 'Image',
- *     author: 'author',
- *   },
- *   {
- *     [etc...]
- *   },
- * ];
- */
 export default function TitlebarGridList({ files, exif }: Props) {
 	const classes = useStyles()
 	const drawerInit: Drawer = {
@@ -108,60 +63,6 @@ export default function TitlebarGridList({ files, exif }: Props) {
 	}
 
 	if (files.length === 0 || exif.length === 0) return <div></div>
-
-	const list = (file: File, exifData: ExifData) => (
-		<div role="presentation" className={classes.list}>
-			<List>
-				<ListItem>
-					<ListItemIcon>
-						<SettingsIcon />
-					</ListItemIcon>
-					<ListItemText primary={'Properties'} />
-				</ListItem>
-				<ListItem button>
-					<ListItemText className={classes.name} secondary="name: " />
-					<ListItemText primary={file.name} />
-				</ListItem>
-				{/* <ListItem className="ml-5">
-					<TextField label="name" value={file.name} />
-				</ListItem> */}
-				<ListItem>
-					<ListItemText className={classes.name} secondary="size: " />
-					<ListItemText
-						primary={file.size && (file.size / 1000000).toFixed(3) + ' Mb'}
-					/>
-				</ListItem>
-				<ListItem>
-					<ListItemText className={classes.date} secondary="original date: " />
-					<ListItemText primary={formatDate(exifData?.originalDate)} />
-				</ListItem>
-				<ListItem>
-					<ListItemText className={classes.date} secondary="change date: " />
-					<ListItemText primary={formatDate(exifData?.changeDate)} />
-				</ListItem>
-			</List>
-			{exifData.keywords ? (
-				<>
-					<Divider />
-					<List>
-						<ListItem>
-							<ListItemIcon>
-								<MenuBookIcon />
-							</ListItemIcon>
-							<ListItemText primary={'Keywords'} />
-						</ListItem>
-						{exifData.keywords.map((text, index) => (
-							<ListItem button key={text}>
-								<ListItemText secondary={text} />
-							</ListItem>
-						))}
-					</List>
-				</>
-			) : (
-				''
-			)}
-		</div>
-	)
 
 	return (
 		<div className={classes.root}>
@@ -201,7 +102,7 @@ export default function TitlebarGridList({ files, exif }: Props) {
 				onClose={() => openDrawer(false)}
 			>
 				{drawer && drawer.file && drawer.exif
-					? list(drawer.file, drawer.exif)
+					? <DrawerMenu file={drawer.file} exif={drawer.exif} />
 					: ''}
 			</Drawer>
 		</div>
