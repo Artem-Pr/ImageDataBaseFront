@@ -113,7 +113,11 @@ export const UploadPage = () => {
 			</div>
 
 			{files.length ? (
-				<TitlebarGridList files={files} exif={exifDataArr} />
+				<TitlebarGridList
+					files={files}
+					exifArr={exifDataArr}
+					setExifDataArr={setExifDataArr}
+				/>
 			) : (
 				''
 			)}

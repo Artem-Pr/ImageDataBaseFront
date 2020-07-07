@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Theme, createStyles, makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
 import List from '@material-ui/core/List'
@@ -18,10 +18,17 @@ import moment from 'moment'
 interface Props {
 	file: File
 	exif: ExifData
+	updateExifArr: (fileName: string, exif: ExifData) => void
 }
 
 const useStyles = makeStyles((theme: Theme) =>
 	createStyles({
+		item: {
+			paddingRight: 100,
+		},
+		textField: {
+			width: 200,
+		},
 		list: {
 			minWidth: 250,
 			width: 'auto',
@@ -42,9 +49,24 @@ const formatDate = (date: Date | undefined): string => {
 	return moment(date).format('DD.MM.YYYY')
 }
 
-export default function DrawerMenu({ file, exif }: Props) {
+export default function DrawerMenu({ file, exif, updateExifArr }: Props) {
 	const classes = useStyles()
 	const [showAddKeywordField, setShowAddKeywordField] = useState<Boolean>(false)
+	const [editableText, setEditableText] = useState<string>('')
+	const [currentExif, setCurrentExif] = useState<ExifData>(exif)
+
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+		if (e.key === 'Enter') {
+			let newExif = {
+				...currentExif,
+				keywords: [editableText, ...(currentExif.keywords || [])],
+			}
+			file.name && updateExifArr(file.name, newExif)
+			setShowAddKeywordField(false)
+			setEditableText('')
+			setCurrentExif(newExif)
+		}
+	}
 
 	return (
 		<div role="presentation" className={classes.list}>
@@ -70,16 +92,16 @@ export default function DrawerMenu({ file, exif }: Props) {
 				</ListItem>
 				<ListItem>
 					<ListItemText className={classes.date} secondary="original date: " />
-					<ListItemText primary={formatDate(exif?.originalDate)} />
+					<ListItemText primary={formatDate(currentExif?.originalDate)} />
 				</ListItem>
 				<ListItem>
 					<ListItemText className={classes.date} secondary="change date: " />
-					<ListItemText primary={formatDate(exif?.changeDate)} />
+					<ListItemText primary={formatDate(currentExif?.changeDate)} />
 				</ListItem>
 			</List>
 			<Divider />
 			<List>
-				<ListItem>
+				<ListItem className={classes.item}>
 					<ListItemIcon>
 						<MenuBookIcon />
 					</ListItemIcon>
@@ -92,8 +114,17 @@ export default function DrawerMenu({ file, exif }: Props) {
 				</ListItem>
 				{showAddKeywordField ? (
 					<ListItem>
-						<TextField label="new keyword" />
+						<TextField
+							className={classes.textField}
+							label="new keyword"
+							defaultValue={editableText}
+							onChange={(e) => setEditableText(e.target.value)}
+							onKeyDown={handleKeyDown}
+						/>
 						<ListItemSecondaryAction>
+							{/* <IconButton edge="end">
+								<PlaylistAddIcon />
+							</IconButton> */}
 							<IconButton
 								edge="end"
 								onClick={() => setShowAddKeywordField(false)}
@@ -105,8 +136,8 @@ export default function DrawerMenu({ file, exif }: Props) {
 				) : (
 					''
 				)}
-				{exif.keywords &&
-					exif.keywords.map((text) => (
+				{currentExif.keywords &&
+					currentExif.keywords.map((text) => (
 						<ListItem button key={text}>
 							<ListItemText secondary={text} />
 						</ListItem>

@@ -12,7 +12,8 @@ import DrawerMenu from '../DrawerMenu/DrawerMenu'
 
 interface Props {
 	files: File[]
-	exif: ExifData[]
+	exifArr: ExifData[]
+	setExifDataArr: (exifArr: ExifData[]) => void
 }
 
 interface Drawer {
@@ -41,7 +42,11 @@ const useStyles = makeStyles((theme: Theme) =>
 	}),
 )
 
-export default function TitlebarGridList({ files, exif }: Props) {
+export default function TitlebarGridList({
+	files,
+	exifArr,
+	setExifDataArr,
+}: Props) {
 	const classes = useStyles()
 	const drawerInit: Drawer = {
 		isOpen: false,
@@ -62,7 +67,16 @@ export default function TitlebarGridList({ files, exif }: Props) {
 		})
 	}
 
-	if (files.length === 0 || exif.length === 0) return <div></div>
+	const updateExifArr = (fileName: string, exif: ExifData): void => {
+		files.forEach((file, i) => {
+			if (file.name === fileName) {
+				exifArr[i] = exif
+				setExifDataArr(exifArr)
+			}
+		})
+	}
+
+	if (files.length === 0 || exifArr.length === 0) return <div></div>
 
 	return (
 		<div className={classes.root}>
@@ -73,12 +87,12 @@ export default function TitlebarGridList({ files, exif }: Props) {
 						<GridListTileBar
 							title={tile.name}
 							subtitle={
-								exif[i]?.originalDate ? (
-									<span>{`original date: ${moment(exif[i]?.originalDate).format(
-										'DD.MM.YYYY',
-									)}`}</span>
+								exifArr[i]?.originalDate ? (
+									<span>{`original date: ${moment(
+										exifArr[i]?.originalDate,
+									).format('DD.MM.YYYY')}`}</span>
 								) : (
-									<span>{`change date: ${moment(exif[i]?.changeDate).format(
+									<span>{`change date: ${moment(exifArr[i]?.changeDate).format(
 										'DD.MM.YYYY',
 									)}`}</span>
 								)
@@ -87,7 +101,7 @@ export default function TitlebarGridList({ files, exif }: Props) {
 								<IconButton
 									aria-label={`info about ${tile.name}`}
 									className={classes.icon}
-									onClick={() => openDrawer(true, tile, exif[i])}
+									onClick={() => openDrawer(true, tile, exifArr[i])}
 								>
 									<InfoIcon />
 								</IconButton>
@@ -101,9 +115,15 @@ export default function TitlebarGridList({ files, exif }: Props) {
 				open={drawer.isOpen}
 				onClose={() => openDrawer(false)}
 			>
-				{drawer && drawer.file && drawer.exif
-					? <DrawerMenu file={drawer.file} exif={drawer.exif} />
-					: ''}
+				{drawer && drawer.file && drawer.exif ? (
+					<DrawerMenu
+						file={drawer.file}
+						exif={drawer.exif}
+						updateExifArr={updateExifArr}
+					/>
+				) : (
+					''
+				)}
 			</Drawer>
 		</div>
 	)
