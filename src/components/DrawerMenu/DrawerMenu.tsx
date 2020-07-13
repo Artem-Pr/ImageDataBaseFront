@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Theme, createStyles, makeStyles } from '@material-ui/core/styles'
 import IconButton from '@material-ui/core/IconButton'
 import List from '@material-ui/core/List'

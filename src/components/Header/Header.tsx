@@ -25,9 +25,9 @@ export const Header = () => {
 
   return (
     <header className="App-header">
-      <div className={classes.root}>
+      <div>
         <AppBar position="static">
-          <Toolbar>
+          <Toolbar className={classes.root}>
             <Typography variant="h5">Image Data Base</Typography>
           </Toolbar>
 					<TabsPanel />

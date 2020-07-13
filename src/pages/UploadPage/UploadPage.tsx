@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { File, ExifData } from '../../types'
+import { File, ExifData, ExifDataStringify } from '../../types'
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles'
 import style from './UploadPage.module.scss'
 import { useDropzone } from 'react-dropzone'
@@ -8,6 +8,7 @@ import Alert from '@material-ui/lab/Alert'
 import Button from '@material-ui/core/Button'
 import TitlebarGridList from '../../components/TitlebarGridList/TitlebarGridList'
 import moment from 'moment'
+import FolderPath from '../../components/FolderPath/FolderPath'
 const loadImage = require('blueimp-load-image')
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -38,7 +39,6 @@ const extractDate = async (file: File) => {
 			// @ts-ignore
 			exifData.originalDate = moment(rawOriginalDate, 'YYYY:MM:DD hh:mm:ss')._d
 		}
-		// console.log('exif', exif)
 		return exifData
 	} catch (error) {
 		console.log(`${file.name} не имеет exif`)
@@ -49,10 +49,15 @@ const extractDate = async (file: File) => {
 
 export const UploadPage = () => {
 	const classes = useStyles()
+	const rootFolder = 'D:/IDB/bin'
+	const defaultYear = '2020'
 	const [files, setFiles] = useState<Array<File>>([])
 	const [exifDataArr, setExifDataArr] = useState<Array<ExifData>>([])
 	const [responseMessage, setResponseMessage] = useState('')
 	const [uploadingError, setUploadingError] = useState<boolean>(false)
+	const [finalPath, setFinalPath] = useState<string>(
+		rootFolder + '/' + defaultYear,
+	)
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		accept: 'image/*',
 		onDrop: (acceptedFiles) => {
@@ -79,8 +84,18 @@ export const UploadPage = () => {
 		e.preventDefault()
 
 		if (files.length === 0) return
+
+		const exifArrStrigify: ExifDataStringify[] = exifDataArr.map((exif) => ({
+			keywords: exif.keywords,
+			changeDate: moment(exif.changeDate).format('DD.MM.YYYY'),
+			...(exif.originalDate && {
+				originalDate: moment(exif.originalDate).format('DD.MM.YYYY'),
+			}),
+			...(exif.error && { error: exif.error }),
+		}))
+
 		try {
-			await mainApi.sendPhotos(files, exifDataArr)
+			await mainApi.sendPhotos(files, exifArrStrigify, finalPath)
 			setUploadingError(false)
 			setResponseMessage('Files uploaded successfully')
 			setFiles([])
@@ -91,6 +106,7 @@ export const UploadPage = () => {
 		}
 	}
 
+	// setImg(URL.createObjectURL(files[0]))
 	useEffect(() => {
 		getImageData(files)
 
@@ -101,6 +117,14 @@ export const UploadPage = () => {
 
 	return (
 		<div>
+			<div>
+				<FolderPath
+					finalPath={finalPath}
+					defaultYear={defaultYear}
+					rootFolder={rootFolder}
+					setFinalPath={setFinalPath}
+				/>
+			</div>
 			<div {...getRootProps({ className: style.dropzone })}>
 				<input {...getInputProps()} />
 				{isDragActive ? (
@@ -129,7 +153,9 @@ export const UploadPage = () => {
 					''
 				)}
 				{!uploadingError && responseMessage ? (
-					<Alert severity="success">{responseMessage}</Alert>
+					<Alert className="mt-3" severity="success">
+						{responseMessage}
+					</Alert>
 				) : (
 					''
 				)}
