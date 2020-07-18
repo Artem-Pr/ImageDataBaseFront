@@ -8,7 +8,7 @@ const instance = axios.create({
 	},
 })
 
-export const mainApi = {
+const mainApi = {
 	sendPhotos(
 		files: File[],
 		exifDataArr: ExifDataStringify[],
@@ -28,4 +28,10 @@ export const mainApi = {
       },
     })
 	},
+
+	getKeywordsList(): Promise<AxiosResponse<any>> {
+		return instance.get('/keywords')
+	}
 }
+
+export default mainApi

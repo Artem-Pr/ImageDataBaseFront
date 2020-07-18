@@ -1,24 +1,32 @@
 import React, { useState } from 'react'
 import { Theme, createStyles, makeStyles } from '@material-ui/core/styles'
-import IconButton from '@material-ui/core/IconButton'
-import List from '@material-ui/core/List'
-import Divider from '@material-ui/core/Divider'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
-import ListItemText from '@material-ui/core/ListItemText'
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import MenuBookIcon from '@material-ui/icons/MenuBook'
 import SettingsIcon from '@material-ui/icons/Settings'
-import AddIcon from '@material-ui/icons/Add'
-import CloseIcon from '@material-ui/icons/Close'
-import TextField from '@material-ui/core/TextField'
+import PlaylistAddIcon from '@material-ui/icons/PlaylistAdd'
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import { File, ExifData } from '../../types'
 import moment from 'moment'
+import {
+	TextField,
+	ListItemSecondaryAction,
+	ListItemText,
+	ListItemIcon,
+	ListItem,
+	Divider,
+	List,
+	IconButton,
+} from '@material-ui/core'
 
 interface Props {
+	defaultKeywords: string[]
 	file: File
 	exif: ExifData
 	updateExifArr: (fileName: string, exif: ExifData) => void
+}
+
+interface IKeywordsOptions {
+	value: string
+	title: string
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -49,23 +57,34 @@ const formatDate = (date: Date | undefined): string => {
 	return moment(date).format('DD.MM.YYYY')
 }
 
-export default function DrawerMenu({ file, exif, updateExifArr }: Props) {
+export default function DrawerMenu({
+	defaultKeywords,
+	file,
+	exif,
+	updateExifArr,
+}: Props) {
 	const classes = useStyles()
 	const [showAddKeywordField, setShowAddKeywordField] = useState<Boolean>(false)
-	const [editableText, setEditableText] = useState<string>('')
+	const [inputValue, setInputValue] = useState('')
 	const [currentExif, setCurrentExif] = useState<ExifData>(exif)
+	const [popupOpen, setPopupOpen] = useState<boolean>(false)
+
+	const addKeyword = () => {
+		const currentKeywordsSet = new Set([
+			inputValue,
+			...(currentExif.keywords || []),
+		])
+		currentKeywordsSet.delete('')
+		let newExif = {
+			...currentExif,
+			keywords: Array.from(currentKeywordsSet),
+		}
+		file.name && updateExifArr(file.name, newExif)
+		setCurrentExif(newExif)
+	}
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
-		if (e.key === 'Enter') {
-			let newExif = {
-				...currentExif,
-				keywords: [editableText, ...(currentExif.keywords || [])],
-			}
-			file.name && updateExifArr(file.name, newExif)
-			setShowAddKeywordField(false)
-			setEditableText('')
-			setCurrentExif(newExif)
-		}
+		if (e.key === 'Enter') addKeyword()
 	}
 
 	return (
@@ -81,9 +100,6 @@ export default function DrawerMenu({ file, exif, updateExifArr }: Props) {
 					<ListItemText className={classes.name} secondary="name: " />
 					<ListItemText primary={file.name} />
 				</ListItem>
-				{/* <ListItem className="ml-5">
-				<TextField label="name" value={file.name} />
-			</ListItem> */}
 				<ListItem>
 					<ListItemText className={classes.name} secondary="size: " />
 					<ListItemText
@@ -107,31 +123,32 @@ export default function DrawerMenu({ file, exif, updateExifArr }: Props) {
 					</ListItemIcon>
 					<ListItemText primary={'Keywords'} />
 					<ListItemSecondaryAction>
-						<IconButton edge="end" onClick={() => setShowAddKeywordField(true)}>
-							<AddIcon />
+						<IconButton
+							edge="end"
+							onClick={() => setShowAddKeywordField(!showAddKeywordField)}
+						>
+							<PlaylistAddIcon />
 						</IconButton>
 					</ListItemSecondaryAction>
 				</ListItem>
 				{showAddKeywordField ? (
 					<ListItem>
-						<TextField
-							className={classes.textField}
-							label="new keyword"
-							defaultValue={editableText}
-							onChange={(e) => setEditableText(e.target.value)}
-							onKeyDown={handleKeyDown}
+						<Autocomplete
+							inputValue={inputValue}
+							onInputChange={(event, newInputValue) => {
+								setInputValue(newInputValue)
+							}}
+							onOpen={() => setPopupOpen(true)}
+							onClose={() => setPopupOpen(false)}
+							onKeyDown={(e: React.KeyboardEvent<HTMLElement>) => {
+								if (!popupOpen) handleKeyDown(e)
+							}}
+							options={defaultKeywords}
+							style={{ width: 300 }}
+							renderInput={(params) => (
+								<TextField {...params} label="new keyword" />
+							)}
 						/>
-						<ListItemSecondaryAction>
-							{/* <IconButton edge="end">
-								<PlaylistAddIcon />
-							</IconButton> */}
-							<IconButton
-								edge="end"
-								onClick={() => setShowAddKeywordField(false)}
-							>
-								<CloseIcon />
-							</IconButton>
-						</ListItemSecondaryAction>
 					</ListItem>
 				) : (
 					''

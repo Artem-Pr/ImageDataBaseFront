@@ -3,7 +3,7 @@ import { File, ExifData, ExifDataStringify } from '../../types'
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles'
 import style from './UploadPage.module.scss'
 import { useDropzone } from 'react-dropzone'
-import { mainApi } from '../../api/api'
+import mainApi from '../../api/api'
 import Alert from '@material-ui/lab/Alert'
 import Button from '@material-ui/core/Button'
 import TitlebarGridList from '../../components/TitlebarGridList/TitlebarGridList'
@@ -33,7 +33,7 @@ const extractDate = async (file: File) => {
 		const rawOriginalDate = exif && exif[306]
 
 		if (keywords && keywords !== 'undefined') {
-			exifData.keywords = keywords.split(', ')
+			exifData.keywords = keywords.split(',').map((item) => item.trim())
 		}
 		if (rawOriginalDate) {
 			// @ts-ignore
@@ -47,7 +47,11 @@ const extractDate = async (file: File) => {
 	}
 }
 
-export const UploadPage = () => {
+interface IProps {
+	keywords: string[]
+}
+
+export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 	const classes = useStyles()
 	const rootFolder = 'D:/IDB/bin'
 	const defaultYear = '2020'
@@ -106,6 +110,7 @@ export const UploadPage = () => {
 		}
 	}
 
+	// Создание картинки из Blob
 	// setImg(URL.createObjectURL(files[0]))
 	useEffect(() => {
 		getImageData(files)
@@ -138,6 +143,7 @@ export const UploadPage = () => {
 
 			{files.length ? (
 				<TitlebarGridList
+					defaultKeywords={defaultKeywords}
 					files={files}
 					exifArr={exifDataArr}
 					setExifDataArr={setExifDataArr}

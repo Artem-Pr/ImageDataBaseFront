@@ -35,7 +35,6 @@ export default function DetailedAccordion({
 			checkboxFinalFolder || finalFolder === '' ? false : finalFolder,
 			checkboxExtraFolder || extraFolder === '' ? false : extraFolder,
 		].filter((item) => item !== false)
-		debugger
 		setFinalPath(newFinalPath.join('/'))
 	}, [
 		year,
@@ -72,7 +71,7 @@ export default function DetailedAccordion({
 						<TextField
 							disabled={checkboxYear}
 							className="mr-3"
-							defaultValue={year}
+							// defaultValue={year}
 							value={checkboxYear ? '' : year}
 							onChange={(e) => setYear(e.target.value)}
 						/>
@@ -95,7 +94,7 @@ export default function DetailedAccordion({
 						<TextField
 							disabled={checkboxFinalFolder}
 							className="mr-3"
-							defaultValue={finalFolder}
+							// defaultValue={finalFolder}
 							value={checkboxFinalFolder ? '' : finalFolder}
 							onChange={(e) => setFinalFolder(e.target.value)}
 						/>
@@ -118,7 +117,7 @@ export default function DetailedAccordion({
 						<TextField
 							disabled={checkboxExtraFolder}
 							className="mr-3"
-							defaultValue={extraFolder}
+							// defaultValue={extraFolder}
 							value={checkboxExtraFolder ? '' : extraFolder}
 							onChange={(e) => setExtraFolder(e.target.value)}
 						/>

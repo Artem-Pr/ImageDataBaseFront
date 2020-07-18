@@ -11,6 +11,7 @@ import moment from 'moment'
 import DrawerMenu from '../DrawerMenu/DrawerMenu'
 
 interface Props {
+	defaultKeywords: string[]
 	files: File[]
 	exifArr: ExifData[]
 	setExifDataArr: (exifArr: ExifData[]) => void
@@ -43,6 +44,7 @@ const useStyles = makeStyles((theme: Theme) =>
 )
 
 export default function TitlebarGridList({
+	defaultKeywords,
 	files,
 	exifArr,
 	setExifDataArr,
@@ -117,6 +119,7 @@ export default function TitlebarGridList({
 			>
 				{drawer && drawer.file && drawer.exif ? (
 					<DrawerMenu
+						defaultKeywords={defaultKeywords}
 						file={drawer.file}
 						exif={drawer.exif}
 						updateExifArr={updateExifArr}
