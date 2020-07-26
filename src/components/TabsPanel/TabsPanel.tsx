@@ -67,21 +67,21 @@ export default function NavTabs() {
 	const [keywordsList, setKeywordsList] = useState<string[]>([])
 
 	useEffect(() => {
-    const getKeywords = async () => {
-      try {
-        const response = await api.getKeywordsList()
-        setKeywordsList(response.data.keywords)
-      } catch (error) {
-        console.error('Ошибка при получении Keywords: ', error.message)
-      }
-    }
+		const getKeywords = async () => {
+			try {
+				const response = await api.getKeywordsList()
+				setKeywordsList(response.data.keywords)
+			} catch (error) {
+				console.error('Ошибка при получении Keywords: ', error.message)
+			}
+		}
 
-    !keywordsList.length && getKeywords()
+		!keywordsList.length && getKeywords()
 	}, [keywordsList])
 
 	const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
 		setValue(newValue)
-  }
+	}
 
 	return (
 		<div className={classes.root}>
@@ -100,7 +100,7 @@ export default function NavTabs() {
 				<UploadPage keywords={keywordsList} />
 			</TabPanel>
 			<TabPanel value={value} index={1}>
-				<SearchPage />
+				<SearchPage defaultKeywords={keywordsList} />
 			</TabPanel>
 		</div>
 	)

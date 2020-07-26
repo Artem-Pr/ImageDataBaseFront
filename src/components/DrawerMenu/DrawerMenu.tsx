@@ -24,11 +24,6 @@ interface Props {
 	updateExifArr: (fileName: string, exif: ExifData) => void
 }
 
-interface IKeywordsOptions {
-	value: string
-	title: string
-}
-
 const useStyles = makeStyles((theme: Theme) =>
 	createStyles({
 		item: {
