@@ -1,14 +1,19 @@
 import React, { useState } from 'react'
 import { Theme, createStyles, makeStyles } from '@material-ui/core/styles'
-import GridList from '@material-ui/core/GridList'
-import GridListTile from '@material-ui/core/GridListTile'
-import GridListTileBar from '@material-ui/core/GridListTileBar'
-import IconButton from '@material-ui/core/IconButton'
+import {
+	GridList,
+	GridListTile,
+	GridListTileBar,
+	IconButton,
+	Drawer,
+	CircularProgress,
+	Paper,
+} from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
-import Drawer from '@material-ui/core/Drawer'
 import { File, ExifData } from '../../types'
-import moment from 'moment'
 import DrawerMenu from '../DrawerMenu/DrawerMenu'
+import mainApi from '../../api/api'
+import moment from 'moment'
 
 interface Props {
 	defaultKeywords: string[]
@@ -40,8 +45,42 @@ const useStyles = makeStyles((theme: Theme) =>
 		icon: {
 			color: 'rgba(255, 255, 255, 0.54)',
 		},
+		paper1: {
+			position: 'absolute',
+			display: 'flex',
+			'& > *': {
+				margin: theme.spacing(1),
+				width: theme.spacing(16),
+				height: theme.spacing(16),
+			},
+		},
+		paper: {
+			height: '100%',
+			width: '100%',
+		},
 	}),
 )
+
+const prepareExif = (rawExif: any, file: File | null): ExifData => {
+	const originalDate = rawExif.DateTimeOriginal ?
+		// @ts-ignore
+		moment(rawExif.DateTimeOriginal, 'YYYY:MM:DD hh:mm:ss')._d
+		: null
+	let keywords = rawExif?.Keywords
+	if (keywords && !Array.isArray(keywords)) keywords = [keywords]
+
+	return {
+		changeDate: file?.lastModifiedDate || new Date(),
+		...(file?.name && { name: file.name }),
+		...(originalDate && { originalDate }),
+		...(keywords && { keywords }),
+		...(rawExif.Megapixels && { megapixels: rawExif.Megapixels }),
+		...(rawExif.ImageSize && { imageSizes: rawExif.ImageSize }),
+		...(file?.size && { size: file.size }),
+		...(file?.tempPath && { tempPath: file.tempPath }),
+		...(file?.type && { type: file.type }),
+	}
+}
 
 export default function TitlebarGridList({
 	defaultKeywords,
@@ -57,60 +96,80 @@ export default function TitlebarGridList({
 	}
 	const [drawer, setDrawer] = useState<Drawer>(drawerInit)
 
-	const openDrawer = (
+	const openDrawer = async (
 		isOpen: boolean,
 		file: File | null = null,
-		exif: ExifData | null = null,
-	): void => {
+		index: number = 0,
+	) => {
+		let newExif: ExifData | null = null
+
+		if (!exifArr[index].megapixels && isOpen) {
+			const response = await mainApi.getKeywordsFromPhoto(file?.tempPath)
+			const rawExif = response.data
+			newExif = prepareExif(rawExif, file)
+		} else {
+			newExif = exifArr[index]
+		}
+
+		file?.name && updateExifArr(file.name, newExif)
 		setDrawer({
 			file,
-			exif,
+			exif: newExif,
 			isOpen,
 		})
 	}
 
 	const updateExifArr = (fileName: string, exif: ExifData): void => {
-		files.forEach((file, i) => {
-			if (file.name === fileName) {
-				exifArr[i] = exif
-				setExifDataArr(exifArr)
+		const newExifArr = exifArr.map((exifItem, i) => {
+			if (exifItem.name === fileName) {
+				return { ...exif, lastModifiedDate: exifItem.lastModifiedDate }
+			} else {
+				return exifItem
 			}
 		})
+		setExifDataArr(newExifArr)
 	}
 
-	if (files.length === 0 || exifArr.length === 0) return <div></div>
+	if (files.length === 0) return <div></div>
 
 	return (
 		<div className={classes.root}>
 			<GridList cellHeight={180} className={classes.gridList}>
-				{files.map((tile, i) => (
-					<GridListTile key={tile.preview} cols={0.25}>
-						<img src={tile.preview} alt={tile.name} />
-						<GridListTileBar
-							title={tile.name}
-							subtitle={
-								exifArr[i]?.originalDate ? (
-									<span>{`original date: ${moment(
-										exifArr[i]?.originalDate,
-									).format('DD.MM.YYYY')}`}</span>
-								) : (
-									<span>{`change date: ${moment(exifArr[i]?.changeDate).format(
-										'DD.MM.YYYY',
-									)}`}</span>
-								)
-							}
-							actionIcon={
-								<IconButton
-									aria-label={`info about ${tile.name}`}
-									className={classes.icon}
-									onClick={() => openDrawer(true, tile, exifArr[i])}
-								>
-									<InfoIcon />
-								</IconButton>
-							}
-						/>
-					</GridListTile>
-				))}
+				{files.map((tile, i) =>
+					tile.preview ? (
+						<GridListTile key={tile.preview + i} cols={0.25}>
+							<img src={tile.preview} alt={tile.name} />
+							<GridListTileBar
+								title={tile.name}
+								actionIcon={
+									<IconButton
+										aria-label={`info about ${tile.name}`}
+										className={classes.icon}
+										onClick={() => openDrawer(true, tile, i)}
+									>
+										<InfoIcon />
+									</IconButton>
+								}
+							/>
+						</GridListTile>
+					) : (
+						<GridListTile key={tile.preview + '-placeholder' + i} cols={0.25}>
+							<div className="w-100 h-75 d-flex align-items-center justify-content-center position-relative">
+								<div className="position-absolute w-100 h-100">
+									<Paper
+										classes={{
+											root: classes.paper,
+										}}
+										variant="outlined"
+										square
+									/>
+								</div>
+								<CircularProgress />
+							</div>
+							<GridListTileBar title={tile.name} />
+						</GridListTile>
+					),
+				)}
 			</GridList>
 			<Drawer
 				anchor="left"

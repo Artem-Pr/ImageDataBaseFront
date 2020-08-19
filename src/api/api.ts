@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios'
-import { File, ExifDataStringify } from '../types'
+import { UploadingObject } from '../types'
 
 const instance = axios.create({
 	baseURL: 'http://localhost:5000',
@@ -10,28 +10,36 @@ const instance = axios.create({
 
 const mainApi = {
 	sendPhotos(
-		files: File[],
-		exifDataArr: ExifDataStringify[],
+		files: UploadingObject[],
 		path: string,
 	): Promise<AxiosResponse<any>> {
+		// const JSONFiles = JSON.stringify(files)
+		return instance.post('/upload', files, {
+			headers: {
+				path: path,
+				'Content-Type': 'application/json',
+			},
+		})
+	},
 
+	sendPhoto(file: any): Promise<AxiosResponse<any>> {
 		const formData = new FormData()
-		files.forEach((file: any) => {
-			formData.append('filedata', file)
-    })
+		formData.append('filedata', file)
 
-		formData.append('exifDataArr', JSON.stringify(exifDataArr))
-		return instance.post('/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'path': path
-      },
-    })
+		return instance.post('/uploadItem', formData)
 	},
 
 	getKeywordsList(): Promise<AxiosResponse<any>> {
 		return instance.get('/keywords')
-	}
+	},
+
+	getKeywordsFromPhoto(
+		tempPath: string | undefined,
+	): Promise<AxiosResponse<any>> {
+		return instance.get('/image-exif', {
+			params: { tempPath },
+		})
+	},
 }
 
 export default mainApi

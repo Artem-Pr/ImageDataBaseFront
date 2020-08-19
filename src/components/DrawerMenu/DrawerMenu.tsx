@@ -24,6 +24,12 @@ interface Props {
 	updateExifArr: (fileName: string, exif: ExifData) => void
 }
 
+const fileSizeToString = (size: number): string => {
+	const originalSize = size / 1000000
+	if (originalSize > 1) return originalSize.toFixed(3) + ' Mb'
+	else return (size / 1000).toFixed() + ' Kb'
+}
+
 const useStyles = makeStyles((theme: Theme) =>
 	createStyles({
 		item: {
@@ -97,9 +103,15 @@ export default function DrawerMenu({
 				</ListItem>
 				<ListItem>
 					<ListItemText className={classes.name} secondary="size: " />
-					<ListItemText
-						primary={file.size && (file.size / 1000000).toFixed(3) + ' Mb'}
-					/>
+					<ListItemText primary={file.size && fileSizeToString(file.size)} />
+				</ListItem>
+				<ListItem>
+					<ListItemText className={classes.date} secondary="image sizes: " />
+					<ListItemText primary={currentExif.imageSizes} />
+				</ListItem>
+				<ListItem>
+					<ListItemText className={classes.date} secondary="megapixels: " />
+					<ListItemText primary={currentExif.megapixels} />
 				</ListItem>
 				<ListItem>
 					<ListItemText className={classes.date} secondary="original date: " />
@@ -149,8 +161,8 @@ export default function DrawerMenu({
 					''
 				)}
 				{currentExif.keywords &&
-					currentExif.keywords.map((text) => (
-						<ListItem button key={text}>
+					currentExif.keywords.map((text, i) => (
+						<ListItem button key={text + i}>
 							<ListItemText secondary={text} />
 						</ListItem>
 					))}

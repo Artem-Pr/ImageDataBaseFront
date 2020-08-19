@@ -1,21 +1,36 @@
 export type fileType = 'image/jpeg'
 
-export interface File {
+export interface UploadingObject {
+	name: string
+	tempPath: string
+	size: number
+	type: string
+	keywords: string[] | null
+}
+
+export interface BaseFile {
+	name?: string
+	size?: number
+	lastModifiedDate?: Date
+	tempPath?: string
+}
+
+export interface File extends BaseFile {
 	preview: string
 	lastModified?: number
-	lastModifiedDate?: Date
-	name?: string
 	path?: string
-	size?: number
 	type?: fileType
 	webkitRelativePath?: string
 }
 
-export interface ExifData {
-  changeDate: Date
-  originalDate?: Date
-  keywords?: string[]
-  error?: string
+export interface ExifData extends BaseFile {
+	changeDate?: Date
+	originalDate?: Date
+	keywords?: string[]
+	megapixels?: number
+	imageSizes?: number
+	error?: string
+	type?: string
 }
 
 export interface ExifDataStringify {
