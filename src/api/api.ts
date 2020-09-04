@@ -13,7 +13,6 @@ const mainApi = {
 		files: UploadingObject[],
 		path: string,
 	): Promise<AxiosResponse<any>> {
-		// const JSONFiles = JSON.stringify(files)
 		return instance.post('/upload', files, {
 			headers: {
 				path: path,

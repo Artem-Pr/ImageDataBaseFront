@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { File, ExifData, UploadingObject } from '../../types'
+import { ExifData, UploadingObject } from '../../types'
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles'
 import style from './UploadPage.module.scss'
 import { useDropzone } from 'react-dropzone'
@@ -9,7 +9,6 @@ import { Button, LinearProgress } from '@material-ui/core'
 import TitlebarGridList from '../../components/TitlebarGridList/TitlebarGridList'
 import moment from 'moment'
 import FolderPath from '../../components/FolderPath/FolderPath'
-const loadImage = require('blueimp-load-image')
 
 const useStyles = makeStyles((theme: Theme) =>
 	createStyles({
@@ -22,45 +21,15 @@ const useStyles = makeStyles((theme: Theme) =>
 	}),
 )
 
-const extractDate = async (file: File) => {
-	const exifData: ExifData = {
-		changeDate: file.lastModifiedDate || new Date(),
-	}
-
-	try {
-		const { exif, iptc } = await loadImage(file, { meta: true })
-		const keywords: string = iptc?.getText('Keywords')
-		const rawOriginalDate = exif && exif[306]
-
-		if (keywords && keywords !== 'undefined') {
-			exifData.keywords = keywords.split(',').map((item) => item.trim())
-		}
-		if (rawOriginalDate) {
-			// @ts-ignore
-			exifData.originalDate = moment(rawOriginalDate, 'YYYY:MM:DD hh:mm:ss')._d
-		}
-		return exifData
-	} catch (error) {
-		console.log(`${file.name} не имеет exif`)
-		exifData.error = 'LoadImage parsing error'
-		return exifData
-	}
-}
-
 interface IProps {
 	keywords: string[]
 }
 
-interface IPreviewData {
-	preview: string
-	tempPath: string
-}
-
 export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 	const classes = useStyles()
-	const rootFolder = 'D:/IDB/bin'
+	const rootFolder = '/Users/olgakim/Documents/Olga/IDB'
 	const defaultYear = '2020'
-	const [files, setFiles] = useState<Array<File>>([])
+	const [files, setFiles] = useState<Array<any>>([])
 	const [numberOfPhotos, setNumberOfPhotos] = useState<number>(0)
 	const [progress, setProgress] = useState<number>(0)
 	const [exifDataArr, setExifDataArr] = useState<Array<ExifData>>([])
@@ -81,7 +50,7 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 				}),
 			)
 
-			const fetchPhotos = async (fileItem: File, i: number) => {
+			const fetchPhotos = async (fileItem: any, i: number) => {
 				try {
 					const resFile = await mainApi.sendPhoto(fileItem)
 					const newArr = Object.assign(imgArr)
@@ -91,13 +60,14 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 					throw error
 				}
 			}
-
+			
+			setProgress(0)
 			setFiles(imgArr)
 			const photoArr = imgArr.map(async (fileItem, i) => {
 				const response = await fetchPhotos(fileItem, i)
-				const progress = ((numberOfPhotos + 1) / imgArr.length) * 100
+				const currentProgress = ((numberOfPhotos + 1) / imgArr.length) * 100
 				setFiles(response)
-				setProgress(Math.round(progress))
+				setProgress(Math.round(currentProgress))
 				setNumberOfPhotos(++numberOfPhotos)
 				return response
 			})
@@ -113,15 +83,6 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 			}
 		},
 	})
-
-	const getImageData = (imgArr: File[]) => {
-		const exifDataArrPromise = imgArr.map((file) => extractDate(file))
-
-		Promise.all(exifDataArrPromise).then((exifDataArr) =>{
-			setExifDataArr(exifDataArr)
-		}
-		)
-	}
 
 	const handleSubmit = async (e: React.MouseEvent<HTMLElement>) => {
 		e.preventDefault()
@@ -205,18 +166,7 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 					</div>
 				)}
 			</div>
-
-			{files.length ? (
-				<TitlebarGridList
-					defaultKeywords={defaultKeywords}
-					files={files}
-					exifArr={exifDataArr}
-					setExifDataArr={setExifDataArr}
-				/>
-			) : (
-				''
-			)}
-
+			
 			<div className={classes.root}>
 				{uploadingError ? (
 					<Alert severity="error">{responseMessage}</Alert>
@@ -232,12 +182,23 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 				)}
 			</div>
 
+			{files.length ? (
+				<TitlebarGridList
+					defaultKeywords={defaultKeywords}
+					files={files}
+					exifArr={exifDataArr}
+					setExifDataArr={setExifDataArr}
+				/>
+			) : (
+				''
+			)}
+
 			<Button
 				className="mt-3"
 				color="primary"
 				variant="contained"
 				onClick={handleSubmit}
-				disabled={progress === 100 ? false : true}
+				disabled={progress !== 100}
 			>
 				Submit
 			</Button>
