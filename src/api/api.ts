@@ -20,23 +20,35 @@ const mainApi = {
 			},
 		})
 	},
-
+	
 	sendPhoto(file: any): Promise<AxiosResponse<any>> {
 		const formData = new FormData()
 		formData.append('filedata', file)
-
+		
 		return instance.post('/uploadItem', formData)
 	},
-
+	
 	getKeywordsList(): Promise<AxiosResponse<any>> {
 		return instance.get('/keywords')
 	},
-
+	
 	getKeywordsFromPhoto(
 		tempPath: string | undefined,
 	): Promise<AxiosResponse<any>> {
 		return instance.get('/image-exif', {
 			params: { tempPath },
+		})
+	},
+	
+	getPhotosByTags(
+		searchTags: Set<string>,
+		excludeTags: Set<string>,
+	): Promise<AxiosResponse<any>> {
+		return instance.get('/filtered-photos', {
+			params: {
+				searchTags: Array.from(searchTags),
+				excludeTags: Array.from(excludeTags),
+			},
 		})
 	},
 }

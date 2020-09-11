@@ -33,9 +33,16 @@ export interface ExifData extends BaseFile {
 	type?: string
 }
 
-export interface ExifDataStringify {
-  changeDate: string
-  originalDate?: string
-  keywords?: string[]
-  error?: string
+export interface IDBFileObject {
+	_id: string
+	changeDate: string
+	filePath: string
+	keywords: string[]
+	megapixels: string
+	mimetype: string
+	originalDate: string | null
+	originalName: string
+	preview: string
+	tempPath: string
+	size: number
 }

@@ -15,23 +15,24 @@ import DeleteIcon from '@material-ui/icons/Delete'
 interface IProps {
 	keywordsList: Set<string>
 	setKeywordsList: (keywordsList: Set<string>) => void
+	selectedTags: Set<string>
+	setSelectedTags: (keywordsList: Set<string>) => void
 	title: string
 }
 
 const KeywordsSearchComp = ({
 	keywordsList,
 	setKeywordsList,
+  selectedTags,
+  setSelectedTags,
 	title,
 }: IProps) => {
 	const [inputValue, setInputValue] = useState('')
 	const [popupOpen, setPopupOpen] = useState<boolean>(false)
-	const [currentKeywords, setCurrentKeywords] = useState<Set<string>>(
-		new Set([]),
-	)
 
 	const addKeyword = (): void => {
 		if (!keywordsList.has(inputValue)) return
-		setCurrentKeywords(currentKeywords.add(inputValue))
+		setSelectedTags(new Set(selectedTags.add(inputValue)))
 		const newKeywordsList = new Set(keywordsList)
 		newKeywordsList.delete(inputValue)
 		setKeywordsList(newKeywordsList)
@@ -46,9 +47,9 @@ const KeywordsSearchComp = ({
 		e: React.MouseEvent<HTMLElement>,
 		keyword: string,
 	): void => {
-		const newKeywords = new Set(currentKeywords)
+		const newKeywords = new Set(selectedTags)
 		newKeywords.delete(keyword)
-		setCurrentKeywords(newKeywords)
+		setSelectedTags(newKeywords)
 
 		const newKeywordsList = [...Array.from(keywordsList), keyword].sort()
 		const newKeywordsListSet = new Set(newKeywordsList)
@@ -79,7 +80,7 @@ const KeywordsSearchComp = ({
 				)}
 			/>
 			<List>
-				{Array.from(currentKeywords).map((tag, i) => (
+				{Array.from(selectedTags).map((tag, i) => (
 					<div key={i}>
 						<ListItem>
 							<ListItemText primary={tag} />
@@ -89,7 +90,7 @@ const KeywordsSearchComp = ({
 								</IconButton>
 							</ListItemSecondaryAction>
 						</ListItem>
-						{currentKeywords.size !== i + 1 ? <Divider /> : ''}
+						{selectedTags.size !== i + 1 ? <Divider /> : ''}
 					</div>
 				))}
 			</List>

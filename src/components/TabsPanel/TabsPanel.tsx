@@ -64,7 +64,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 export default function NavTabs() {
 	const classes = useStyles()
 	const [value, setValue] = useState(0)
-	const [keywordsList, setKeywordsList] = useState<string[]>([])
+	const [keywordsList, setKeywordsList] = useState<string[] | null>(null)
 
 	useEffect(() => {
 		const getKeywords = async () => {
@@ -76,7 +76,7 @@ export default function NavTabs() {
 			}
 		}
 
-		!keywordsList.length && getKeywords()
+		!keywordsList && getKeywords()
 	}, [keywordsList])
 
 	const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
@@ -97,10 +97,10 @@ export default function NavTabs() {
 				</Tabs>
 			</AppBar>
 			<TabPanel value={value} index={0}>
-				<UploadPage keywords={keywordsList} />
+				<UploadPage keywords={keywordsList || []} />
 			</TabPanel>
 			<TabPanel value={value} index={1}>
-				<SearchPage defaultKeywords={keywordsList} />
+				<SearchPage defaultKeywords={keywordsList || []} />
 			</TabPanel>
 		</div>
 	)

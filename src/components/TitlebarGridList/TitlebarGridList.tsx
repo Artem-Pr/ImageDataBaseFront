@@ -130,7 +130,7 @@ export default function TitlebarGridList({
 		setExifDataArr(newExifArr)
 	}
 
-	if (files.length === 0) return <div></div>
+	if (files.length === 0) return <div> </div>
 
 	return (
 		<div className={classes.root}>
