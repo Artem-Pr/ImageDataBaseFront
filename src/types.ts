@@ -42,7 +42,13 @@ export interface IDBFileObject {
 	mimetype: string
 	originalDate: string | null
 	originalName: string
+	originalPath: string
 	preview: string
 	tempPath: string
 	size: number
+}
+
+export interface IGallery {
+	original: string
+	thumbnail: string
 }

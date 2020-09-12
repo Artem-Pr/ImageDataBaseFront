@@ -12,6 +12,7 @@ import cx from 'classnames'
 
 interface Props {
 	IDBFilesArr: IDBFileObject[]
+	imageClick: (isGalleryShow: boolean, index: number) => void
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -52,18 +53,20 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const TitlebarGridListSearch = ({
 	                                IDBFilesArr,
+	                                imageClick,
                                 }: Props) => {
 	const classes = useStyles()
 	
 	return (
 		<div className={classes.root}>
 			<GridList cellHeight={180} className={classes.gridList}>
-				{IDBFilesArr.map(tile =>
+				{IDBFilesArr.map((tile, i) =>
 					
 					<GridListTile
 						key={tile._id}
 						cols={0.25}
 						className={classes.gridListTile}
+						onClick={() => imageClick(true, i)}
 					>
 						<img
 							src={tile.preview}
