@@ -35,7 +35,7 @@ export const SearchPage = ({ defaultKeywords }: IProps) => {
 				const response = await mainApi.getPhotosByTags(searchTags, excludeTags)
 				setIDBFilesArr(response.data)
 				setGalleryArr(response.data.map((item: IDBFileObject) => ({
-					original: item.originalPath,
+					original: item.mimetype.startsWith('image') ? item.originalPath : item.preview,
 					thumbnail: item.preview,
 				})))
 			} catch (err) {
@@ -47,8 +47,12 @@ export const SearchPage = ({ defaultKeywords }: IProps) => {
 	}, [searchTags, excludeTags])
 	
 	const imageClick = (isGalleryShow: boolean, index: number): void => {
-		setIsGalleryShow(isGalleryShow)
-		setCurrentImage(index)
+		if (IDBFilesArr[index].mimetype.startsWith('video')) {
+			window.open(IDBFilesArr[index].originalPath, '_blank')
+		} else {
+			setIsGalleryShow(isGalleryShow)
+			setCurrentImage(index)
+		}
 	}
 	
 	return (

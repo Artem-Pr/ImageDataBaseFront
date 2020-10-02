@@ -39,7 +39,7 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 		rootFolder + '/' + defaultYear,
 	)
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
-		accept: 'image/*',
+		accept: ['image/*', 'video/*'],
 		onDrop: async (acceptedFiles) => {
 			setResponseMessage('')
 			let numberOfPhotos: number = 0
@@ -88,8 +88,7 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 		e.preventDefault()
 
 		if (files.length === 0) return
-
-		const uploadingFileArr: UploadingObject[] = exifDataArr.map((item) => ({
+		const uploadingFileArr: UploadingObject[] = exifDataArr.map((item, i) => ({
 			changeDate: moment(item.lastModifiedDate).format('DD.MM.YYYY'),
 			name: item.name || '',
 			tempPath: item.tempPath || '',
@@ -97,6 +96,7 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 			size: item.size || 0,
 			megapixels: item.megapixels || '',
 			keywords: item.keywords || null,
+			preview: files[i].preview,
 		}))
 
 		try {
