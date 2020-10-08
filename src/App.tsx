@@ -1,6 +1,5 @@
 import React from 'react'
-import { Route } from 'react-router-dom'
-import { Header } from './components/Header/Header'
+import { AppWrapper } from './components/AppWrapper/AppWrapper'
 
 import { createMuiTheme } from '@material-ui/core/styles'
 import { ThemeProvider } from '@material-ui/styles'
@@ -18,15 +17,7 @@ function App() {
 	return (
 		<div className="App">
 			<ThemeProvider theme={theme}>
-				<Route
-					exact
-					path={'/'}
-					render={() => (
-						<div>
-							<Header />
-						</div>
-					)}
-				/>
+				<AppWrapper />
 			</ThemeProvider>
 		</div>
 	)

@@ -6,12 +6,19 @@ import Tab from '@material-ui/core/Tab'
 import Box from '@material-ui/core/Box'
 import { UploadPage } from '../../pages/UploadPage/UploadPage'
 import { SearchPage } from '../../pages/SearchPage/SearchPage'
-import api from '../../api/api'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from '../../redux/rootReducer'
+import { fetchKeywordsList } from '../../redux/sliceReducer'
 
 interface TabPanelProps {
 	children?: React.ReactNode
 	index: any
 	value: any
+}
+
+interface LinkTabProps {
+	label?: string
+	href?: string
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -37,11 +44,6 @@ function a11yProps(index: any) {
 	}
 }
 
-interface LinkTabProps {
-	label?: string
-	href?: string
-}
-
 function LinkTab(props: LinkTabProps) {
 	return (
 		<Tab
@@ -61,23 +63,31 @@ const useStyles = makeStyles((theme: Theme) => ({
 	},
 }))
 
-export default function NavTabs() {
+const sameArr = function(a1: string[], a2: string[]) {
+	if (a1.length === 0 && a2.length === 0) return true
+	return a1.length === a2.length && a1.every((v,i)=>v === a2[i])
+}
+
+export default function TabsPanel() {
 	const classes = useStyles()
 	const [value, setValue] = useState(0)
-	const [keywordsList, setKeywordsList] = useState<string[] | null>(null)
+	const [tempKeywordsList, setTempKeywordsList] = useState<string[]>([])
+	const dispatch = useDispatch()
+	const { keywordsList } = useSelector((state: RootState) => state.mainReducer)
 
 	useEffect(() => {
-		const getKeywords = async () => {
-			try {
-				const response = await api.getKeywordsList()
-				setKeywordsList(response.data.keywords)
-			} catch (error) {
-				console.error('Ошибка при получении Keywords: ', error.message)
+		setTempKeywordsList(prevState => {
+			if (!sameArr(prevState, keywordsList)) {
+				return keywordsList
+			} else {
+				return prevState
 			}
-		}
-
-		!keywordsList && getKeywords()
-	}, [keywordsList])
+		})
+	}, [dispatch, keywordsList, tempKeywordsList])
+	
+	useEffect(() => {
+		dispatch(fetchKeywordsList())
+	}, [dispatch, tempKeywordsList])
 
 	const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
 		setValue(newValue)

@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-export const Header = () => {
+export const AppWrapper = () => {
   const classes = useStyles();
 
   return (

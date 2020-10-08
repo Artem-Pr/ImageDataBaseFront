@@ -45,8 +45,15 @@ const useStyles = makeStyles((theme: Theme) =>
 			},
 		},
 		gridListTileBar: {
+			height: 'auto',
+			padding: '10px 0',
+			textAlign: 'start',
 			transform: 'translateY(100%)',
 			transition: 'all 0.2s ease',
+		},
+		subtitle: {
+			marginTop: 10,
+			marginBottom: 5,
 		},
 	}),
 )
@@ -66,15 +73,19 @@ const TitlebarGridListSearch = ({
 						key={tile._id}
 						cols={0.25}
 						className={classes.gridListTile}
-						onClick={() => imageClick(true, i)}
 					>
 						<img
 							src={tile.preview}
 							alt={tile.originalName}
 							className={classes.image}
+							onClick={() => imageClick(true, i)}
 						/>
 						<GridListTileBar
 							title={tile.originalName}
+							subtitle={<div>
+								<div className={classes.subtitle}>{tile.mimetype}</div>
+								<div>{tile.originalDate || tile.changeDate}</div>
+							</div>}
 							className={cx(classes.gridListTileBar, 'grid-list-tile-bar')}
 							actionIcon={
 								<IconButton
