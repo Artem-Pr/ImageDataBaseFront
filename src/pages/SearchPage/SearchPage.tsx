@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
 	Accordion,
 	AccordionSummary,
@@ -8,51 +8,120 @@ import {
 } from '@material-ui/core'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import KeywordsSearchComp from '../../components/KeywordsSearchComp/KeywordsSearchComp'
-import mainApi from '../../api/api'
 import { IDBFileObject, IGallery } from '../../types'
 import TitlebarGridListSearch from '../../components/TitlebarGridList/TitlebarGridListSearch'
 import ImageGallery from 'react-image-gallery'
+import { fetchPhotosByTag } from '../../redux/sliceReducer'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from '../../redux/rootReducer'
+import Iframe from 'react-iframe'
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles'
 
 interface IProps {
 	defaultKeywords: string[]
 }
 
+const useStyles = makeStyles((theme: Theme) =>
+	createStyles({
+		iframeStyles: {
+			width: '100%',
+			height: 'calc(100vh - 80px)',
+		},
+		playButton: {
+			cursor: 'pointer',
+			position: 'absolute',
+			left: 0,
+			top: 0,
+			bottom: 0,
+			right: 0,
+			margin: 'auto',
+			height: 60,
+			width: 100,
+			backgroundColor: 'rgba(0, 0, 0, .7)',
+			borderRadius: 5,
+			
+			'&::after': {
+				content: '""',
+				display: 'block',
+				position: 'absolute',
+				top: 16.5,
+				left: 40,
+				margin: '0 auto',
+				borderStyle: 'solid',
+				borderWidth: '12.5px 0 12.5px 20px',
+				borderColor: 'transparent transparent transparent rgba(255,255,255,1)',
+			},
+		},
+	}),
+)
+
 export const SearchPage = ({ defaultKeywords }: IProps) => {
 	const [keywordsList, setKeywordsList] = useState<Set<string>>(new Set(defaultKeywords))
 	const [searchTags, setSearchTags] = useState<Set<string>>(new Set([]))
 	const [excludeTags, setExcludeTags] = useState<Set<string>>(new Set([]))
-	const [IDBFilesArr, setIDBFilesArr] = useState<IDBFileObject[]>([])
 	const [galleryArr, setGalleryArr] = useState<IGallery[]>([])
 	const [isGalleryShow, setIsGalleryShow] = useState<boolean>(false)
 	const [currentImage, setCurrentImage] = useState<number>(0)
+	const [showVideo, setShowVideo] = useState(false)
+	const [showPlayButton, setShowPlayButton] = useState(true)
+	const [showFullscreenButton, setShowFullscreenButton] = useState(true)
+	
+	const { searchPhotosArr } = useSelector((state: RootState) => state.mainReducer)
+	const dispatch = useDispatch()
+	const classes = useStyles()
+	
+	const handlePlay = () => {
+		setShowVideo(true)
+		setShowPlayButton(false)
+		setShowFullscreenButton(false)
+	}
+	
+	const videoItem = useCallback((originalPath: string, preview: string) => {
+		return (
+			<>
+				{showVideo ? (
+					<Iframe url={originalPath}
+					        width="80vm"
+					        id="myId"
+					        className={classes.iframeStyles}
+					        position="relative"
+					/>
+				) : (
+					<div>
+						<div className={classes.playButton} onClick={handlePlay} />
+						<img src={preview} alt='video-preview' />
+					</div>
+				)}
+			</>
+		)
+	}, [classes.iframeStyles, classes.playButton, showVideo])
 	
 	useEffect(() => {
-		const fetchPhotosByTag = async (
-			searchTags: Set<string>,
-			excludeTags: Set<string>,
-		) => {
-			try {
-				const response = await mainApi.getPhotosByTags(searchTags, excludeTags)
-				setIDBFilesArr(response.data)
-				setGalleryArr(response.data.map((item: IDBFileObject) => ({
-					original: item.mimetype.startsWith('image') ? item.originalPath : item.preview,
-					thumbnail: item.preview,
-				})))
-			} catch (err) {
-				console.log(err)
+		dispatch(fetchPhotosByTag(searchTags, excludeTags))
+	}, [dispatch, searchTags, excludeTags])
+	
+	useEffect(() => {
+		setGalleryArr(searchPhotosArr.map((item: IDBFileObject) => {
+			const galleryItem: IGallery = {
+				thumbnail: item.preview,
+				original: item.originalPath,
 			}
-		}
-		
-		fetchPhotosByTag(searchTags, excludeTags)
-	}, [searchTags, excludeTags])
+			if (item.mimetype.startsWith('video')) galleryItem.renderItem =
+				() => videoItem(item.originalPath, item.preview)
+			return galleryItem
+		}))
+	}, [searchPhotosArr, showVideo, videoItem])
 	
 	const imageClick = (isGalleryShow: boolean, index: number): void => {
-		if (IDBFilesArr[index].mimetype.startsWith('video')) {
-			window.open(IDBFilesArr[index].originalPath, '_blank')
-		} else {
-			setIsGalleryShow(isGalleryShow)
-			setCurrentImage(index)
-		}
+		setIsGalleryShow(isGalleryShow)
+		setCurrentImage(index)
+	}
+	
+	const handleSlide = (currentIndex: number) => {
+		setCurrentImage(currentIndex)
+		setShowPlayButton(true)
+		setShowFullscreenButton(true)
+		setShowVideo(false)
 	}
 	
 	return (
@@ -88,13 +157,15 @@ export const SearchPage = ({ defaultKeywords }: IProps) => {
 			</Accordion>
 			
 			<TitlebarGridListSearch
-				IDBFilesArr={IDBFilesArr}
+				IDBFilesArr={searchPhotosArr}
 				imageClick={imageClick}
+				keywordsList={keywordsList}
 			/>
 			
 			<Dialog
 				open={isGalleryShow}
 				maxWidth="lg"
+				fullWidth
 				onClose={() => setIsGalleryShow(false)}
 			>
 				<ImageGallery
@@ -103,6 +174,9 @@ export const SearchPage = ({ defaultKeywords }: IProps) => {
 					slideInterval={3000}
 					startIndex={currentImage}
 					showThumbnails={false}
+					onSlide={handleSlide}
+					showPlayButton={showPlayButton}
+					showFullscreenButton={showFullscreenButton}
 					showIndex
 				/>
 			</Dialog>

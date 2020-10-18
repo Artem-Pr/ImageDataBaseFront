@@ -28,7 +28,7 @@ export interface ExifData extends BaseFile {
 	originalDate?: Date
 	keywords?: string[]
 	megapixels?: number
-	imageSizes?: number
+	imageSizes?: string
 	error?: string
 	type?: string
 }
@@ -39,6 +39,7 @@ export interface IDBFileObject {
 	filePath: string
 	keywords: string[]
 	megapixels: string
+	imageSize: string
 	mimetype: string
 	originalDate: string | null
 	originalName: string
@@ -49,6 +50,13 @@ export interface IDBFileObject {
 }
 
 export interface IGallery {
-	original: string
 	thumbnail: string
+	original?: string
+	renderItem?: () => any
+}
+
+export interface IDrawer {
+	isOpen: boolean
+	file: File
+	exif: ExifData
 }

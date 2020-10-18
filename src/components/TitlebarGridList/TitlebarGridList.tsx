@@ -10,7 +10,7 @@ import {
 	Paper,
 } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
-import { File, ExifData } from '../../types'
+import { File, ExifData, IDrawer } from '../../types'
 import DrawerMenu from '../DrawerMenu/DrawerMenu'
 import mainApi from '../../api/api'
 import moment from 'moment'
@@ -20,12 +20,6 @@ interface Props {
 	files: File[]
 	exifArr: ExifData[]
 	setExifDataArr: (exifArr: ExifData[]) => void
-}
-
-interface Drawer {
-	isOpen: boolean
-	file: File | null
-	exif: ExifData | null
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -68,7 +62,7 @@ const prepareExif = (rawExif: any, file: File | null): ExifData => {
 		: null
 	let keywords = rawExif?.Keywords
 	if (keywords && !Array.isArray(keywords)) keywords = [keywords]
-
+	
 	return {
 		changeDate: file?.lastModifiedDate || new Date(),
 		...(file?.name && { name: file.name }),
@@ -83,26 +77,26 @@ const prepareExif = (rawExif: any, file: File | null): ExifData => {
 }
 
 export default function TitlebarGridList({
-	defaultKeywords,
-	files,
-	exifArr,
-	setExifDataArr,
-}: Props) {
+	                                         defaultKeywords,
+	                                         files,
+	                                         exifArr,
+	                                         setExifDataArr,
+                                         }: Props) {
 	const classes = useStyles()
-	const drawerInit: Drawer = {
+	const drawerInit: IDrawer = {
 		isOpen: false,
-		file: null,
-		exif: null,
+		file: { preview: '' },
+		exif: {},
 	}
-	const [drawer, setDrawer] = useState<Drawer>(drawerInit)
-
+	const [drawer, setDrawer] = useState<IDrawer>(drawerInit)
+	
 	const openDrawer = async (
 		isOpen: boolean,
-		file: File | null = null,
+		file: File = { preview: '' },
 		index: number = 0,
 	) => {
-		let newExif: ExifData | null = null
-
+		let newExif: ExifData | null
+		
 		if (!exifArr[index].megapixels && isOpen) {
 			const response = await mainApi.getKeywordsFromPhoto(file?.tempPath)
 			const rawExif = response.data
@@ -118,7 +112,7 @@ export default function TitlebarGridList({
 			isOpen,
 		})
 	}
-
+	
 	const updateExifArr = (fileName: string, exif: ExifData): void => {
 		const newExifArr = exifArr.map((exifItem, i) => {
 			if (exifItem.name === fileName) {
@@ -129,9 +123,9 @@ export default function TitlebarGridList({
 		})
 		setExifDataArr(newExifArr)
 	}
-
+	
 	if (files.length === 0) return <div> </div>
-
+	
 	return (
 		<div className={classes.root}>
 			<GridList cellHeight={180} className={classes.gridList}>

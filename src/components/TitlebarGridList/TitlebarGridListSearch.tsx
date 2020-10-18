@@ -1,17 +1,14 @@
-import React from 'react'
-import { Theme, createStyles, makeStyles } from '@material-ui/core/styles'
-import {
-	GridList,
-	GridListTile,
-	GridListTileBar,
-	IconButton,
-} from '@material-ui/core'
+import React, { useEffect, useState } from 'react'
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles'
+import { Drawer, GridList, GridListTile, GridListTileBar, IconButton } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
-import { IDBFileObject } from '../../types'
-import cx from 'classnames'
+import { ExifData, File, IDBFileObject, IDrawer } from '../../types'
+import DrawerMenu from '../DrawerMenu/DrawerMenu'
+import moment from 'moment'
 
 interface Props {
 	IDBFilesArr: IDBFileObject[]
+	keywordsList: Set<string>
 	imageClick: (isGalleryShow: boolean, index: number) => void
 }
 
@@ -25,6 +22,9 @@ const useStyles = makeStyles((theme: Theme) =>
 			overflow: 'hidden',
 			backgroundColor: theme.palette.background.paper,
 		},
+		fullList: {
+			width: 'auto',
+		},
 		gridList: {
 			// поставить медиа запросы
 			width: '100%',
@@ -36,21 +36,23 @@ const useStyles = makeStyles((theme: Theme) =>
 			objectFit: 'scale-down',
 			height: '100%',
 		},
-		gridListTile: {
-			textAlign: 'center',
-			minWidth: 200,
-			// border: '1px solid #e0e0e0',
-			'&:hover .grid-list-tile-bar': {
-				transform: 'translateY(0%)',
-			},
-		},
-		gridListTileBar: {
-			height: 'auto',
-			padding: '10px 0',
-			textAlign: 'start',
-			transform: 'translateY(100%)',
-			transition: 'all 0.2s ease',
-		},
+		//Todo: починить выдвигающиеся данные для фото
+		// gridListTile: {
+		// 	textAlign: 'center',
+		// 	width: '200px !important',
+		// 	overflow: 'hidden',
+		// 	// height: '133px !important',
+		// 	'&:hover .grid-list-tile-bar': {
+		// 		transform: 'translateY(0%)',
+		// 	},
+		// },
+		// gridListTileBar: {
+		// 	height: 'auto',
+		// 	padding: '10px 0',
+		// 	textAlign: 'start',
+		// 	transform: 'translateY(100%)',
+		// 	transition: 'all 0.2s ease',
+		// },
 		subtitle: {
 			marginTop: 10,
 			marginBottom: 5,
@@ -58,11 +60,65 @@ const useStyles = makeStyles((theme: Theme) =>
 	}),
 )
 
+const convertExif = (IDBFilesArr: IDBFileObject[]): ExifData[] => {
+	return IDBFilesArr.map(file => ({
+		keywords: file?.keywords,
+		imageSizes: file?.imageSize,
+		megapixels: file?.megapixels ? +file?.megapixels : undefined,
+		// @ts-ignore
+		originalDate: moment(file?.originalDate, 'DD:MM:YYYY')._d,
+		// @ts-ignore
+		changeDate: moment(file?.changeDate, 'DD:MM:YYYY')._d,
+	}))
+}
+
 const TitlebarGridListSearch = ({
 	                                IDBFilesArr,
 	                                imageClick,
+	                                keywordsList,
                                 }: Props) => {
 	const classes = useStyles()
+	const drawerInit: IDrawer = {
+		isOpen: false,
+		file: { preview: '' },
+		exif: {},
+	}
+	const [drawer, setDrawer] = useState<IDrawer>(drawerInit)
+	const [exifArr, setExifArr] = useState<ExifData[]>([])
+	
+	const openDrawer = (
+		isOpen: boolean,
+		file: IDBFileObject | null = null,
+		i: number = 0,
+	) => {
+		const convertedFile: File = {
+			name: file?.originalName || '',
+			size: file?.size || 0,
+			preview: file?.preview || '',
+		}
+		
+		setDrawer({
+			file: convertedFile,
+			exif: exifArr[i],
+			isOpen,
+		})
+	}
+	
+	const updateExifArr = (fileName: string, exif: ExifData): void => {
+		const newExifArr = exifArr.map((exifItem, i) => {
+			if (exifItem.name === fileName) {
+				return { ...exif, lastModifiedDate: exifItem.lastModifiedDate }
+			} else {
+				return exifItem
+			}
+		})
+		setExifArr(newExifArr)
+	}
+	
+	useEffect(() => {
+		setExifArr(convertExif(IDBFilesArr))
+	}, [IDBFilesArr])
+	
 	
 	return (
 		<div className={classes.root}>
@@ -72,7 +128,7 @@ const TitlebarGridListSearch = ({
 					<GridListTile
 						key={tile._id}
 						cols={0.25}
-						className={classes.gridListTile}
+						// className={classes.gridListTile}
 					>
 						<img
 							src={tile.preview}
@@ -86,11 +142,12 @@ const TitlebarGridListSearch = ({
 								<div className={classes.subtitle}>{tile.mimetype}</div>
 								<div>{tile.originalDate || tile.changeDate}</div>
 							</div>}
-							className={cx(classes.gridListTileBar, 'grid-list-tile-bar')}
+							// className={cx(classes.gridListTileBar, 'grid-list-tile-bar')}
 							actionIcon={
 								<IconButton
 									aria-label={`info about ${tile.originalName}`}
 									className={classes.icon}
+									onClick={() => openDrawer(true, tile, i)}
 								>
 									<InfoIcon />
 								</IconButton>
@@ -99,6 +156,19 @@ const TitlebarGridListSearch = ({
 					</GridListTile>,
 				)}
 			</GridList>
+			
+			<Drawer
+				anchor="left"
+				open={drawer.isOpen}
+				onClose={() => openDrawer(false)}
+			>
+				<DrawerMenu
+					defaultKeywords={Array.from(keywordsList)}
+					file={drawer.file}
+					exif={drawer.exif}
+					updateExifArr={updateExifArr}
+				/>
+			</Drawer>
 		</div>
 	)
 }

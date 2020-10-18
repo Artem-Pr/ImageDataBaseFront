@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
-import AppBar from '@material-ui/core/AppBar'
-import Tabs from '@material-ui/core/Tabs'
-import Tab from '@material-ui/core/Tab'
-import Box from '@material-ui/core/Box'
+import { AppBar, Tabs, Tab, Box } from '@material-ui/core'
 import { UploadPage } from '../../pages/UploadPage/UploadPage'
 import { SearchPage } from '../../pages/SearchPage/SearchPage'
 import { useDispatch, useSelector } from 'react-redux'
@@ -23,7 +20,7 @@ interface LinkTabProps {
 
 function TabPanel(props: TabPanelProps) {
 	const { children, value, index, ...other } = props
-
+	
 	return (
 		<div
 			role="tabpanel"
@@ -65,7 +62,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 const sameArr = function(a1: string[], a2: string[]) {
 	if (a1.length === 0 && a2.length === 0) return true
-	return a1.length === a2.length && a1.every((v,i)=>v === a2[i])
+	return a1.length === a2.length && a1.every((v, i) => v === a2[i])
 }
 
 export default function TabsPanel() {
@@ -74,7 +71,7 @@ export default function TabsPanel() {
 	const [tempKeywordsList, setTempKeywordsList] = useState<string[]>([])
 	const dispatch = useDispatch()
 	const { keywordsList } = useSelector((state: RootState) => state.mainReducer)
-
+	
 	useEffect(() => {
 		setTempKeywordsList(prevState => {
 			if (!sameArr(prevState, keywordsList)) {
@@ -86,13 +83,13 @@ export default function TabsPanel() {
 	}, [dispatch, keywordsList, tempKeywordsList])
 	
 	useEffect(() => {
-		dispatch(fetchKeywordsList())
-	}, [dispatch, tempKeywordsList])
-
+		!keywordsList.length && dispatch(fetchKeywordsList())
+	}, [dispatch, keywordsList.length])
+	
 	const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
 		setValue(newValue)
 	}
-
+	
 	return (
 		<div className={classes.root}>
 			<AppBar position="static">
