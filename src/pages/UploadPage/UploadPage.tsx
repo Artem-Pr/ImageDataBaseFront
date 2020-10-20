@@ -27,17 +27,13 @@ interface IProps {
 
 export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 	const classes = useStyles()
-	const rootFolder = '/Users/olgakim/Documents/Olga/IDB'
-	const defaultYear = '2020'
 	const [files, setFiles] = useState<Array<any>>([])
 	const [numberOfPhotos, setNumberOfPhotos] = useState<number>(0)
 	const [progress, setProgress] = useState<number>(0)
 	const [exifDataArr, setExifDataArr] = useState<Array<ExifData>>([])
 	const [responseMessage, setResponseMessage] = useState('')
 	const [uploadingError, setUploadingError] = useState<boolean>(false)
-	const [finalPath, setFinalPath] = useState<string>(
-		rootFolder + '/' + defaultYear,
-	)
+	const [finalPath, setFinalPath] = useState<string>('')
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		accept: ['image/*', 'video/*'],
 		onDrop: async (acceptedFiles) => {
@@ -137,8 +133,7 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 			<div>
 				<FolderPath
 					finalPath={finalPath}
-					defaultYear={defaultYear}
-					rootFolder={rootFolder}
+					defaultYear={'2020'}
 					setFinalPath={setFinalPath}
 				/>
 			</div>

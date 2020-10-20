@@ -11,14 +11,12 @@ import Checkbox from '@material-ui/core/Checkbox'
 interface Props {
 	finalPath: string
 	defaultYear: string
-	rootFolder: string
 	setFinalPath: (path: string) => void
 }
 
 export default function DetailedAccordion({
 	finalPath,
 	defaultYear,
-	rootFolder,
 	setFinalPath,
 }: Props) {
 	const [year, setYear] = useState<string>(defaultYear)
@@ -30,7 +28,6 @@ export default function DetailedAccordion({
 
 	useEffect(() => {
 		const newFinalPath = [
-			rootFolder,
 			checkboxYear || year === '' ? false : year,
 			checkboxFinalFolder || finalFolder === '' ? false : finalFolder,
 			checkboxExtraFolder || extraFolder === '' ? false : extraFolder,
@@ -38,7 +35,6 @@ export default function DetailedAccordion({
 		setFinalPath(newFinalPath.join('/'))
 	}, [
 		year,
-		rootFolder,
 		finalFolder,
 		extraFolder,
 		checkboxYear,
@@ -58,12 +54,6 @@ export default function DetailedAccordion({
 					</div>
 				</AccordionSummary>
 				<AccordionDetails className="d-flex flex-column">
-					<div className="d-flex align-items-center mb-3">
-						<Typography className="mr-3" color="textSecondary" variant="body1">
-							Root folder:
-						</Typography>
-						<TextField defaultValue={rootFolder} />
-					</div>
 					<div className="d-flex align-items-center mb-3">
 						<Typography className="mr-3" color="textSecondary" variant="body1">
 							Year folder:
