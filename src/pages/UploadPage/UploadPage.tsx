@@ -133,7 +133,6 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 			<div>
 				<FolderPath
 					finalPath={finalPath}
-					defaultYear={'2020'}
 					setFinalPath={setFinalPath}
 				/>
 			</div>

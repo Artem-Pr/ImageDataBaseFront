@@ -1,133 +1,55 @@
-import React, { useState, useEffect } from 'react'
-import Accordion from '@material-ui/core/Accordion'
-import AccordionDetails from '@material-ui/core/AccordionDetails'
-import AccordionSummary from '@material-ui/core/AccordionSummary'
+import React, { useState } from 'react'
 import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import TextField from '@material-ui/core/TextField'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Checkbox from '@material-ui/core/Checkbox'
+import Autocomplete from '@material-ui/lab/Autocomplete'
 
 interface Props {
 	finalPath: string
-	defaultYear: string
 	setFinalPath: (path: string) => void
 }
 
 export default function DetailedAccordion({
-	finalPath,
-	defaultYear,
-	setFinalPath,
-}: Props) {
-	const [year, setYear] = useState<string>(defaultYear)
-	const [finalFolder, setFinalFolder] = useState<string>('')
-	const [extraFolder, setExtraFolder] = useState<string>('')
-	const [checkboxYear, setCheckboxYear] = useState<boolean>(false)
-	const [checkboxFinalFolder, setCheckboxFinalFolder] = useState<boolean>(false)
-	const [checkboxExtraFolder, setCheckboxExtraFolder] = useState<boolean>(false)
-
-	useEffect(() => {
-		const newFinalPath = [
-			checkboxYear || year === '' ? false : year,
-			checkboxFinalFolder || finalFolder === '' ? false : finalFolder,
-			checkboxExtraFolder || extraFolder === '' ? false : extraFolder,
-		].filter((item) => item !== false)
-		setFinalPath(newFinalPath.join('/'))
-	}, [
-		year,
-		finalFolder,
-		extraFolder,
-		checkboxYear,
-		checkboxFinalFolder,
-		checkboxExtraFolder,
-		setFinalPath,
-	])
-
+	                                          finalPath,
+	                                          setFinalPath,
+                                          }: Props) {
+	const [inputValue, setInputValue] = useState(finalPath)
+	const [popupOpen, setPopupOpen] = useState<boolean>(false)
+	const [pathArr, setPathArr] = useState<string[]>(['bom', 'title'])
+	
+	const addPath = () => {
+		const currentPathSet = new Set([...pathArr, inputValue])
+		currentPathSet.delete('')
+		setPathArr(Array.from(currentPathSet))
+		setFinalPath(inputValue)
+	}
+	
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+		if (e.key === 'Enter') addPath()
+	}
+	
 	return (
-		<div className="d-flex mb-3">
-			<Accordion>
-				<AccordionSummary expandIcon={<ExpandMoreIcon />}>
-					<div>
-						<Typography color="primary" variant="button" component="h2">
-							Directory
-						</Typography>
-					</div>
-				</AccordionSummary>
-				<AccordionDetails className="d-flex flex-column">
-					<div className="d-flex align-items-center mb-3">
-						<Typography className="mr-3" color="textSecondary" variant="body1">
-							Year folder:
-						</Typography>
-						<TextField
-							disabled={checkboxYear}
-							className="mr-3"
-							// defaultValue={year}
-							value={checkboxYear ? '' : year}
-							onChange={(e) => setYear(e.target.value)}
-						/>
-						<FormControlLabel
-							control={
-								<Checkbox
-									checked={checkboxYear}
-									onChange={() => setCheckboxYear(!checkboxYear)}
-									name="isYearFolder"
-									color="primary"
-								/>
-							}
-							label="Do not use this folder"
-						/>
-					</div>
-					<div className="d-flex align-items-center mb-3">
-						<Typography className="mr-3" color="textSecondary" variant="body1">
-							Add folder:
-						</Typography>
-						<TextField
-							disabled={checkboxFinalFolder}
-							className="mr-3"
-							// defaultValue={finalFolder}
-							value={checkboxFinalFolder ? '' : finalFolder}
-							onChange={(e) => setFinalFolder(e.target.value)}
-						/>
-						<FormControlLabel
-							control={
-								<Checkbox
-									checked={checkboxFinalFolder}
-									onChange={() => setCheckboxFinalFolder(!checkboxFinalFolder)}
-									name="isYearFolder"
-									color="primary"
-								/>
-							}
-							label="Do not use this folder"
-						/>
-					</div>
-					<div className="d-flex align-items-center mb-3">
-						<Typography className="mr-3" color="textSecondary" variant="body1">
-							Extra folder:
-						</Typography>
-						<TextField
-							disabled={checkboxExtraFolder}
-							className="mr-3"
-							// defaultValue={extraFolder}
-							value={checkboxExtraFolder ? '' : extraFolder}
-							onChange={(e) => setExtraFolder(e.target.value)}
-						/>
-						<FormControlLabel
-							control={
-								<Checkbox
-									checked={checkboxExtraFolder}
-									onChange={() => setCheckboxExtraFolder(!checkboxExtraFolder)}
-									name="isYearFolder"
-									color="primary"
-								/>
-							}
-							label="Do not use this folder"
-						/>
-					</div>
-					<Typography className="mr-3" color="primary" variant="body2">
-						{`Final path: ${finalPath}`}
-					</Typography>
-				</AccordionDetails>
-			</Accordion>
+		<div className="d-flex mb-3 align-items-end">
+			<Autocomplete
+				freeSolo
+				inputValue={inputValue}
+				onInputChange={(event, newInputValue) => {
+					setInputValue(newInputValue)
+				}}
+				onOpen={() => setPopupOpen(true)}
+				onClose={() => setPopupOpen(false)}
+				onKeyDown={(e: React.KeyboardEvent<HTMLElement>) => {
+					if (!popupOpen) handleKeyDown(e)
+				}}
+				options={pathArr}
+				style={{ width: 300 }}
+				renderInput={(params) => (
+					<TextField {...params} label="Directory" />
+				)}
+			/>
+			<Typography className="ml-4" color="primary" variant="body1">
+				<span className="mr-2">Current folder:</span>
+				<span>{finalPath}</span>
+			</Typography>
 		</div>
 	)
 }

@@ -141,6 +141,7 @@ export default function DrawerMenu({
 				{showAddKeywordField ? (
 					<ListItem>
 						<Autocomplete
+							freeSolo
 							inputValue={inputValue}
 							onInputChange={(event, newInputValue) => {
 								setInputValue(newInputValue)
