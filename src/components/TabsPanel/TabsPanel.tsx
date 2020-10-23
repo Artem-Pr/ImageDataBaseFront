@@ -5,7 +5,7 @@ import { UploadPage } from '../../pages/UploadPage/UploadPage'
 import { SearchPage } from '../../pages/SearchPage/SearchPage'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../redux/rootReducer'
-import { fetchKeywordsList } from '../../redux/sliceReducer'
+import { fetchKeywordsList, fetchPathsList } from '../../redux/sliceReducer'
 
 interface TabPanelProps {
 	children?: React.ReactNode
@@ -70,7 +70,7 @@ export default function TabsPanel() {
 	const [value, setValue] = useState(0)
 	const [tempKeywordsList, setTempKeywordsList] = useState<string[]>([])
 	const dispatch = useDispatch()
-	const { keywordsList } = useSelector((state: RootState) => state.mainReducer)
+	const { keywordsList, pathsList } = useSelector((state: RootState) => state.mainReducer)
 	
 	useEffect(() => {
 		setTempKeywordsList(prevState => {
@@ -85,6 +85,10 @@ export default function TabsPanel() {
 	useEffect(() => {
 		!keywordsList.length && dispatch(fetchKeywordsList())
 	}, [dispatch, keywordsList.length])
+	
+	useEffect(() => {
+		!pathsList.length && dispatch(fetchPathsList())
+	}, [dispatch, pathsList.length])
 	
 	const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
 		setValue(newValue)

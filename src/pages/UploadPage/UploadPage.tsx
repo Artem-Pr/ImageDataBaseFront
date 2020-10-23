@@ -9,6 +9,8 @@ import { Button, LinearProgress } from '@material-ui/core'
 import TitlebarGridList from '../../components/TitlebarGridList/TitlebarGridList'
 import moment from 'moment'
 import FolderPath from '../../components/FolderPath/FolderPath'
+import { useSelector } from 'react-redux'
+import { RootState } from '../../redux/rootReducer'
 
 const useStyles = makeStyles((theme: Theme) =>
 	createStyles({
@@ -34,6 +36,7 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 	const [responseMessage, setResponseMessage] = useState('')
 	const [uploadingError, setUploadingError] = useState<boolean>(false)
 	const [finalPath, setFinalPath] = useState<string>('')
+	const { pathsList } = useSelector((state: RootState) => state.mainReducer)
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		accept: ['image/*', 'video/*'],
 		onDrop: async (acceptedFiles) => {
@@ -132,6 +135,7 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 		<div>
 			<div>
 				<FolderPath
+					pathsList={pathsList}
 					finalPath={finalPath}
 					setFinalPath={setFinalPath}
 				/>

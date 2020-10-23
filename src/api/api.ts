@@ -32,6 +32,10 @@ const mainApi = {
 		return instance.get('/keywords')
 	},
 	
+	getPathsList(): Promise<AxiosResponse<any>> {
+		return instance.get('/paths')
+	},
+	
 	getKeywordsFromPhoto(
 		tempPath: string | undefined,
 	): Promise<AxiosResponse<any>> {

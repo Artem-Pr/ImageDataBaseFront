@@ -1,20 +1,22 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Typography from '@material-ui/core/Typography'
 import TextField from '@material-ui/core/TextField'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 
 interface Props {
+	pathsList: string[]
 	finalPath: string
 	setFinalPath: (path: string) => void
 }
 
-export default function DetailedAccordion({
-	                                          finalPath,
-	                                          setFinalPath,
-                                          }: Props) {
+export default function FolderPath({
+	                                   pathsList,
+	                                   finalPath,
+	                                   setFinalPath,
+                                   }: Props) {
 	const [inputValue, setInputValue] = useState(finalPath)
 	const [popupOpen, setPopupOpen] = useState<boolean>(false)
-	const [pathArr, setPathArr] = useState<string[]>(['bom', 'title'])
+	const [pathArr, setPathArr] = useState<string[]>([])
 	
 	const addPath = () => {
 		const currentPathSet = new Set([...pathArr, inputValue])
@@ -26,6 +28,10 @@ export default function DetailedAccordion({
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
 		if (e.key === 'Enter') addPath()
 	}
+	
+	useEffect(() => {
+		setPathArr(pathsList)
+	}, [pathsList])
 	
 	return (
 		<div className="d-flex mb-3 align-items-end">
