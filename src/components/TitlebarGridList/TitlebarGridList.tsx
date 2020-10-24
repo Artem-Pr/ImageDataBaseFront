@@ -19,7 +19,9 @@ interface Props {
 	defaultKeywords: string[]
 	files: File[]
 	exifArr: ExifData[]
+	selectedArr: boolean[]
 	setExifDataArr: (exifArr: ExifData[]) => void
+	setSelectedArr: (selectedArr: boolean[]) => void
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -52,6 +54,12 @@ const useStyles = makeStyles((theme: Theme) =>
 			height: '100%',
 			width: '100%',
 		},
+		gridListMenuSelected: {
+			background: 'rgba(0, 132, 236, 0.83)',
+		},
+		image: {
+			cursor: 'pointer',
+		},
 	}),
 )
 
@@ -81,6 +89,8 @@ export default function TitlebarGridList({
 	                                         files,
 	                                         exifArr,
 	                                         setExifDataArr,
+	                                         selectedArr,
+	                                         setSelectedArr,
                                          }: Props) {
 	const classes = useStyles()
 	const drawerInit: IDrawer = {
@@ -104,7 +114,7 @@ export default function TitlebarGridList({
 		} else {
 			newExif = exifArr[index]
 		}
-
+		
 		file?.name && updateExifArr(file.name, newExif)
 		setDrawer({
 			file,
@@ -124,7 +134,13 @@ export default function TitlebarGridList({
 		setExifDataArr(newExifArr)
 	}
 	
-	if (files.length === 0) return <div> </div>
+	const handleSelect = (index: number) => {
+		const updatedSelectedArr = [...selectedArr]
+		updatedSelectedArr[index] = !selectedArr[index]
+		setSelectedArr(updatedSelectedArr)
+	}
+	
+	if (files.length === 0) return <div></div>
 	
 	return (
 		<div className={classes.root}>
@@ -132,8 +148,14 @@ export default function TitlebarGridList({
 				{files.map((tile, i) =>
 					tile.preview ? (
 						<GridListTile key={tile.preview + i} cols={0.25}>
-							<img src={tile.preview} alt={tile.name} />
+							<img
+								src={tile.preview}
+								alt={tile.name}
+								className={classes.image}
+								onClick={() => handleSelect(i)}
+							/>
 							<GridListTileBar
+								className={selectedArr[i] ? classes.gridListMenuSelected : ''}
 								title={tile.name}
 								actionIcon={
 									<IconButton

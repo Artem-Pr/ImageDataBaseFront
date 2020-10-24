@@ -5,7 +5,7 @@ import style from './UploadPage.module.scss'
 import { useDropzone } from 'react-dropzone'
 import mainApi from '../../api/api'
 import Alert from '@material-ui/lab/Alert'
-import { Button, LinearProgress } from '@material-ui/core'
+import { Button, ButtonGroup, LinearProgress } from '@material-ui/core'
 import TitlebarGridList from '../../components/TitlebarGridList/TitlebarGridList'
 import moment from 'moment'
 import FolderPath from '../../components/FolderPath/FolderPath'
@@ -36,19 +36,22 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 	const [responseMessage, setResponseMessage] = useState('')
 	const [uploadingError, setUploadingError] = useState<boolean>(false)
 	const [finalPath, setFinalPath] = useState<string>('')
+	const [showSelectAllBtn, setShowSelectAllBtn] = useState<boolean>(false)
+	const [showEditSelectedBtn, setShowEditSelectedBtn] = useState<boolean>(false)
+	const [selectedArr, setSelectedArr] = useState<boolean[]>([])
 	const { pathsList } = useSelector((state: RootState) => state.mainReducer)
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		accept: ['image/*', 'video/*'],
 		onDrop: async (acceptedFiles) => {
 			setResponseMessage('')
 			let numberOfPhotos: number = 0
-
+			
 			const imgArr = acceptedFiles.map((file) =>
 				Object.assign(file, {
 					preview: '',
 				}),
 			)
-
+			
 			const fetchPhotos = async (fileItem: any, i: number) => {
 				try {
 					const resFile = await mainApi.sendPhoto(fileItem)
@@ -70,7 +73,7 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 				setNumberOfPhotos(++numberOfPhotos)
 				return response
 			})
-
+			
 			try {
 				await Promise.all(photoArr)
 				setUploadingError(false)
@@ -82,10 +85,10 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 			}
 		},
 	})
-
+	
 	const handleSubmit = async (e: React.MouseEvent<HTMLElement>) => {
 		e.preventDefault()
-
+		
 		if (files.length === 0) return
 		const uploadingFileArr: UploadingObject[] = exifDataArr.map((item, i) => ({
 			changeDate: moment(item.lastModifiedDate).format('DD.MM.YYYY'),
@@ -97,7 +100,7 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 			keywords: item.keywords || null,
 			preview: files[i].preview,
 		}))
-
+		
 		try {
 			await mainApi.sendPhotos(uploadingFileArr, finalPath)
 			setUploadingError(false)
@@ -109,7 +112,12 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 			console.error(error)
 		}
 	}
-
+	
+	const handleSelectAll = () => {
+		setSelectedArr(prevState =>
+			new Array(prevState.length).fill(showSelectAllBtn))
+	}
+	
 	useEffect(() => {
 		const exifArr = files.map((file) => {
 			const {
@@ -127,13 +135,37 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 				type,
 			}
 		})
-
+		
 		setExifDataArr(exifArr)
 	}, [files, progress])
-
+	
+	useEffect(() => {
+		if (files.length) {
+			setShowSelectAllBtn(true)
+			setSelectedArr(prevState => {
+				if (prevState.length !== files.length)
+					return new Array(files.length).fill(false)
+				else return prevState
+			})
+		}
+	}, [files])
+	
+	useEffect(() => {
+		!selectedArr.includes(false)
+			? setShowSelectAllBtn(false)
+			: setShowSelectAllBtn(true)
+	}, [selectedArr])
+	
 	return (
 		<div>
-			<div>
+			<div className="d-flex align-items-center">
+				<ButtonGroup color="primary" className="mr-3">
+					<Button onClick={handleSelectAll} disabled={!files.length}>
+						{showSelectAllBtn || !files.length ? 'select all' : 'deselect all'}
+					</Button>
+					<Button disabled={!showEditSelectedBtn}>edit selected</Button>
+				</ButtonGroup>
+				
 				<FolderPath
 					pathsList={pathsList}
 					finalPath={finalPath}
@@ -179,18 +211,20 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 					''
 				)}
 			</div>
-
+			
 			{files.length ? (
 				<TitlebarGridList
 					defaultKeywords={defaultKeywords}
 					files={files}
 					exifArr={exifDataArr}
 					setExifDataArr={setExifDataArr}
+					selectedArr={selectedArr}
+					setSelectedArr={setSelectedArr}
 				/>
 			) : (
 				''
 			)}
-
+			
 			<Button
 				className="mt-3"
 				color="primary"
