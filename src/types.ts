@@ -60,3 +60,10 @@ export interface IDrawer {
 	file: File
 	exif: ExifData
 }
+
+export interface IChangedData {
+	originalName: string
+	newName?: string
+	originalDate?: Date
+	changeDate?: Date
+}

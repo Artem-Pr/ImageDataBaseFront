@@ -10,7 +10,7 @@ import {
 	Paper,
 } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
-import { File, ExifData, IDrawer } from '../../types'
+import { File, ExifData, IDrawer, IChangedData } from '../../types'
 import DrawerMenu from '../DrawerMenu/DrawerMenu'
 import mainApi from '../../api/api'
 import moment from 'moment'
@@ -115,7 +115,7 @@ export default function TitlebarGridList({
 			newExif = exifArr[index]
 		}
 		
-		file?.name && updateExifArr(file.name, newExif)
+		file?.name && updateExifArr({ originalName: file.name }, newExif)
 		setDrawer({
 			file,
 			exif: newExif,
@@ -123,9 +123,9 @@ export default function TitlebarGridList({
 		})
 	}
 	
-	const updateExifArr = (fileName: string, exif: ExifData): void => {
+	const updateExifArr = (changedData: IChangedData, exif: ExifData): void => {
 		const newExifArr = exifArr.map((exifItem, i) => {
-			if (exifItem.name === fileName) {
+			if (exifItem.name === changedData.originalName) {
 				return { ...exif, lastModifiedDate: exifItem.lastModifiedDate }
 			} else {
 				return exifItem

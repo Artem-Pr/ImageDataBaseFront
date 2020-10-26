@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles'
 import { Drawer, GridList, GridListTile, GridListTileBar, IconButton } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
-import { ExifData, File, IDBFileObject, IDrawer } from '../../types'
+import { ExifData, File, IChangedData, IDBFileObject, IDrawer } from '../../types'
 import DrawerMenu from '../DrawerMenu/DrawerMenu'
 import moment from 'moment'
 
@@ -104,9 +104,9 @@ const TitlebarGridListSearch = ({
 		})
 	}
 	
-	const updateExifArr = (fileName: string, exif: ExifData): void => {
+	const updateExifArr = (changedData: IChangedData, exif: ExifData): void => {
 		const newExifArr = exifArr.map((exifItem, i) => {
-			if (exifItem.name === fileName) {
+			if (exifItem.name === changedData.originalName) {
 				return { ...exif, lastModifiedDate: exifItem.lastModifiedDate }
 			} else {
 				return exifItem

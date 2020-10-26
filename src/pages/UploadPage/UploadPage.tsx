@@ -20,6 +20,9 @@ const useStyles = makeStyles((theme: Theme) =>
 				marginTop: theme.spacing(2),
 			},
 		},
+		selectBtn: {
+			minWidth: 132,
+		},
 	}),
 )
 
@@ -151,16 +154,19 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 	}, [files])
 	
 	useEffect(() => {
-		!selectedArr.includes(false)
-			? setShowSelectAllBtn(false)
-			: setShowSelectAllBtn(true)
+		setShowSelectAllBtn(selectedArr.includes(false))
+		setShowEditSelectedBtn(selectedArr.includes(true))
 	}, [selectedArr])
 	
 	return (
 		<div>
 			<div className="d-flex align-items-center">
 				<ButtonGroup color="primary" className="mr-3">
-					<Button onClick={handleSelectAll} disabled={!files.length}>
+					<Button
+						className={classes.selectBtn}
+						onClick={handleSelectAll}
+						disabled={!files.length}
+					>
 						{showSelectAllBtn || !files.length ? 'select all' : 'deselect all'}
 					</Button>
 					<Button disabled={!showEditSelectedBtn}>edit selected</Button>
