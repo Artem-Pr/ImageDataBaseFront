@@ -62,6 +62,8 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const convertExif = (IDBFilesArr: IDBFileObject[]): ExifData[] => {
 	return IDBFilesArr.map(file => ({
+		size: file.size,
+		name: file.originalName,
 		keywords: file?.keywords,
 		imageSizes: file?.imageSize,
 		megapixels: file?.megapixels ? +file?.megapixels : undefined,
@@ -104,10 +106,18 @@ const TitlebarGridListSearch = ({
 		})
 	}
 	
+	// Todo: сложить в hook, т.к. дублируется
 	const updateExifArr = (changedData: IChangedData, exif: ExifData): void => {
 		const newExifArr = exifArr.map((exifItem, i) => {
-			if (exifItem.name === changedData.originalName) {
-				return { ...exif, lastModifiedDate: exifItem.lastModifiedDate }
+			const { originalName, newName: name, changeDate, originalDate } = changedData
+			if (exifItem.name === originalName) {
+				return {
+					...exif,
+					...(name && { name }),
+					...(originalDate && { originalDate }),
+					...(changeDate && { changeDate }),
+					lastModifiedDate: changeDate || exifItem.lastModifiedDate,
+				}
 			} else {
 				return exifItem
 			}
@@ -164,7 +174,6 @@ const TitlebarGridListSearch = ({
 			>
 				<DrawerMenu
 					defaultKeywords={Array.from(keywordsList)}
-					file={drawer.file}
 					exif={drawer.exif}
 					updateExifArr={updateExifArr}
 				/>

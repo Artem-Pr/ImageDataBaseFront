@@ -4,8 +4,7 @@ import MenuBookIcon from '@material-ui/icons/MenuBook'
 import SettingsIcon from '@material-ui/icons/Settings'
 import PlaylistAddIcon from '@material-ui/icons/PlaylistAdd'
 import Autocomplete from '@material-ui/lab/Autocomplete'
-import { File, ExifData, IChangedData } from '../../types'
-import moment from 'moment'
+import { ExifData, IChangedData, DateType } from '../../types'
 import {
 	TextField,
 	ListItemSecondaryAction,
@@ -19,10 +18,11 @@ import {
 	InputAdornment,
 } from '@material-ui/core'
 import { Close } from '@material-ui/icons'
+import DatePicker from '../DatePicker/DatePicker'
+import { formatDate } from '../../common/utils'
 
 interface Props {
 	defaultKeywords: string[]
-	file: File
 	exif: ExifData
 	updateExifArr: (changedData: IChangedData, exif: ExifData) => void
 }
@@ -56,14 +56,8 @@ const useStyles = makeStyles((theme: Theme) =>
 	}),
 )
 
-const formatDate = (date: Date | undefined): string => {
-	if (!date) return '-'
-	return moment(date).format('DD.MM.YYYY')
-}
-
 export default function DrawerMenu({
 	                                   defaultKeywords,
-	                                   file,
 	                                   exif,
 	                                   updateExifArr,
                                    }: Props) {
@@ -72,13 +66,20 @@ export default function DrawerMenu({
 	const [inputValue, setInputValue] = useState('')
 	const [currentExif, setCurrentExif] = useState<ExifData>(exif)
 	const [popupOpen, setPopupOpen] = useState<boolean>(false)
-	const [originalName, setOriginalName] = useState<string>(file.name || '')
+	const [originalName, setOriginalName] = useState<string>(exif.name || '')
 	const [newName, setNewName] = useState<string | null>(null)
-	const [originalDate, setOriginalDate] = useState<Date | null>(null)
-	const [changeDate, setChangeDate] = useState<Date | null>(null)
+	const [originalDate, setOriginalDate] = useState<Date | null>(currentExif?.originalDate || null)
+	const [changeDate, setChangeDate] = useState<Date | null>(currentExif?.changeDate || null)
 	const [editNameField, setEditNameField] = useState<boolean>(false)
-	const [editChangeDate, setEditChangeDate] = useState<boolean>(false)
 	const [editOriginalDate, setEditOriginalDate] = useState<boolean>(false)
+	const [editChangeDate, setEditChangeDate] = useState<boolean>(false)
+
+	const closeAllFields = () => {
+		setEditChangeDate(false)
+		setEditNameField(false)
+		setEditOriginalDate(false)
+		addKeyword()
+	}
 	
 	const addKeyword = () => {
 		const currentKeywordsSet = new Set([
@@ -100,32 +101,44 @@ export default function DrawerMenu({
 	
 	const handleKeyDownProp = (
 		e: React.KeyboardEvent<HTMLElement>,
-		saveFunc: any,
-		value: string | null,
+		saveFunc: any = null,
+		value: string | null = null,
 	) => {
 		if (e.key === 'Enter') {
-			setEditChangeDate(false)
-			setEditNameField(false)
-			setEditOriginalDate(false)
-			saveFunc(value)
+			closeAllFields()
+			saveFunc && saveFunc(value)
 		}
 	}
 	
 	const handleCancel = (cancelFunc: any) => {
-		setEditChangeDate(false)
-		setEditNameField(false)
-		setEditOriginalDate(false)
+		closeAllFields()
 		cancelFunc(null)
 	}
 	
+	const handleEdit = (cancelFunc: any) => {
+		closeAllFields()
+		cancelFunc(true)
+	}
+	
+	const datePickerHandleKey = (
+		e: React.KeyboardEvent<HTMLElement>,
+		dateType: DateType,
+		value: Date | null,
+	) => {
+		handleKeyDownProp(e)
+		if (dateType === 'original') setOriginalDate(value)
+		if (dateType === 'changed') setChangeDate(value)
+	}
+	
 	const getChangedData: () => IChangedData = useCallback(() => {
+		const extension = exif.name?.slice(-4)
 		return {
 			originalName,
-			...newName && { newName },
+			...newName && { newName: newName + extension },
 			...originalDate && { originalDate },
 			...changeDate && { changeDate },
 		}
-	}, [changeDate, originalName, newName, originalDate])
+	}, [exif.name, originalName, newName, originalDate, changeDate])
 	
 	
 	return (
@@ -140,7 +153,7 @@ export default function DrawerMenu({
 				
 				{!editNameField
 					? (
-						<ListItem button onClick={() => setEditNameField(true)}>
+						<ListItem button onClick={() => handleEdit(setEditNameField)}>
 							<ListItemText className={classes.name} secondary="name: " />
 							<ListItemText primary={newName || originalName} />
 						</ListItem>
@@ -168,7 +181,7 @@ export default function DrawerMenu({
 				
 				<ListItem>
 					<ListItemText className={classes.name} secondary="size: " />
-					<ListItemText primary={file.size && fileSizeToString(file.size)} />
+					<ListItemText primary={exif.size && fileSizeToString(exif.size)} />
 				</ListItem>
 				<ListItem>
 					<ListItemText className={classes.date} secondary="image sizes: " />
@@ -178,14 +191,40 @@ export default function DrawerMenu({
 					<ListItemText className={classes.date} secondary="megapixels: " />
 					<ListItemText primary={currentExif.megapixels} />
 				</ListItem>
-				<ListItem button>
-					<ListItemText className={classes.date} secondary="original date: " />
-					<ListItemText primary={formatDate(currentExif?.originalDate)} />
-				</ListItem>
-				<ListItem button>
-					<ListItemText className={classes.date} secondary="change date: " />
-					<ListItemText primary={formatDate(currentExif?.changeDate)} />
-				</ListItem>
+				
+				{!editOriginalDate
+					? (
+						<ListItem button onClick={() => handleEdit(setEditOriginalDate)}>
+							<ListItemText className={classes.date} secondary="original date: " />
+							<ListItemText primary={formatDate(originalDate)} />
+						</ListItem>
+					) : (
+						<ListItem>
+							<ListItemText className={classes.date} secondary="original date: " />
+							<DatePicker
+								dateType='original'
+								setDate={setOriginalDate}
+								handleKey={datePickerHandleKey}
+								initialDate={originalDate} />
+						</ListItem>
+					)}
+				
+				{!editChangeDate
+					? (
+						<ListItem button onClick={() => handleEdit(setEditChangeDate)}>
+							<ListItemText className={classes.date} secondary="change date: " />
+							<ListItemText primary={formatDate(changeDate)} />
+						</ListItem>
+					) : (
+						<ListItem>
+							<ListItemText className={classes.date} secondary="change date: " />
+							<DatePicker
+								dateType='changed'
+								setDate={setChangeDate}
+								handleKey={datePickerHandleKey}
+								initialDate={changeDate} />
+						</ListItem>
+					)}
 			</List>
 			<Divider />
 			<List>

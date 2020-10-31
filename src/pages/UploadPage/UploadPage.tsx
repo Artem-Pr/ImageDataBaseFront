@@ -7,10 +7,10 @@ import mainApi from '../../api/api'
 import Alert from '@material-ui/lab/Alert'
 import { Button, ButtonGroup, LinearProgress } from '@material-ui/core'
 import TitlebarGridList from '../../components/TitlebarGridList/TitlebarGridList'
-import moment from 'moment'
 import FolderPath from '../../components/FolderPath/FolderPath'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../redux/rootReducer'
+import { formatDate } from '../../common/utils'
 
 const useStyles = makeStyles((theme: Theme) =>
 	createStyles({
@@ -94,7 +94,8 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 		
 		if (files.length === 0) return
 		const uploadingFileArr: UploadingObject[] = exifDataArr.map((item, i) => ({
-			changeDate: moment(item.lastModifiedDate).format('DD.MM.YYYY'),
+			originalDate: formatDate(item.originalDate),
+			changeDate: formatDate(item.lastModifiedDate || item.changeDate),
 			name: item.name || '',
 			tempPath: item.tempPath || '',
 			type: item.type || '',

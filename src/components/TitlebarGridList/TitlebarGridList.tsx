@@ -125,8 +125,15 @@ export default function TitlebarGridList({
 	
 	const updateExifArr = (changedData: IChangedData, exif: ExifData): void => {
 		const newExifArr = exifArr.map((exifItem, i) => {
-			if (exifItem.name === changedData.originalName) {
-				return { ...exif, lastModifiedDate: exifItem.lastModifiedDate }
+			const { originalName, newName: name, changeDate, originalDate } = changedData
+			if (exifItem.name === originalName) {
+				return {
+					...exif,
+					...(name && { name }),
+					...(originalDate && { originalDate }),
+					...(changeDate && { changeDate }),
+					lastModifiedDate: changeDate || null,
+				}
 			} else {
 				return exifItem
 			}
@@ -195,7 +202,6 @@ export default function TitlebarGridList({
 				{drawer && drawer.file && drawer.exif ? (
 					<DrawerMenu
 						defaultKeywords={defaultKeywords}
-						file={drawer.file}
 						exif={drawer.exif}
 						updateExifArr={updateExifArr}
 					/>

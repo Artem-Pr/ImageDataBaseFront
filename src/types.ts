@@ -11,7 +11,7 @@ export interface UploadingObject {
 export interface BaseFile {
 	name?: string
 	size?: number
-	lastModifiedDate?: Date
+	lastModifiedDate?: Date | null
 	tempPath?: string
 }
 
@@ -67,3 +67,5 @@ export interface IChangedData {
 	originalDate?: Date
 	changeDate?: Date
 }
+
+export type DateType = 'original' | 'changed'
