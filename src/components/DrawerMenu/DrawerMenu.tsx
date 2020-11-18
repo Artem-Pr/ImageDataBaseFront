@@ -28,6 +28,7 @@ interface Props {
 }
 
 const fileSizeToString = (size: number): string => {
+	if (!size) return '-'
 	const originalSize = size / 1000000
 	if (originalSize > 1) return originalSize.toFixed(3) + ' Mb'
 	else return (size / 1000).toFixed() + ' Kb'
@@ -69,13 +70,10 @@ export default function DrawerMenu({
 	const [originalName, setOriginalName] = useState<string>(exif.name || '')
 	const [newName, setNewName] = useState<string | null>(null)
 	const [originalDate, setOriginalDate] = useState<Date | null>(currentExif?.originalDate || null)
-	const [changeDate, setChangeDate] = useState<Date | null>(currentExif?.changeDate || null)
 	const [editNameField, setEditNameField] = useState<boolean>(false)
 	const [editOriginalDate, setEditOriginalDate] = useState<boolean>(false)
-	const [editChangeDate, setEditChangeDate] = useState<boolean>(false)
-
+	
 	const closeAllFields = () => {
-		setEditChangeDate(false)
 		setEditNameField(false)
 		setEditOriginalDate(false)
 		addKeyword()
@@ -127,7 +125,6 @@ export default function DrawerMenu({
 	) => {
 		handleKeyDownProp(e)
 		if (dateType === 'original') setOriginalDate(value)
-		if (dateType === 'changed') setChangeDate(value)
 	}
 	
 	const getChangedData: () => IChangedData = useCallback(() => {
@@ -136,9 +133,8 @@ export default function DrawerMenu({
 			originalName,
 			...newName && { newName: newName + extension },
 			...originalDate && { originalDate },
-			...changeDate && { changeDate },
 		}
-	}, [exif.name, originalName, newName, originalDate, changeDate])
+	}, [exif.name, originalName, newName, originalDate])
 	
 	
 	return (
@@ -185,11 +181,11 @@ export default function DrawerMenu({
 				</ListItem>
 				<ListItem>
 					<ListItemText className={classes.date} secondary="image sizes: " />
-					<ListItemText primary={currentExif.imageSizes} />
+					<ListItemText primary={currentExif.imageSizes || '-'} />
 				</ListItem>
 				<ListItem>
 					<ListItemText className={classes.date} secondary="megapixels: " />
-					<ListItemText primary={currentExif.megapixels} />
+					<ListItemText primary={currentExif.megapixels || '-'} />
 				</ListItem>
 				
 				{!editOriginalDate
@@ -209,22 +205,10 @@ export default function DrawerMenu({
 						</ListItem>
 					)}
 				
-				{!editChangeDate
-					? (
-						<ListItem button onClick={() => handleEdit(setEditChangeDate)}>
-							<ListItemText className={classes.date} secondary="change date: " />
-							<ListItemText primary={formatDate(changeDate)} />
-						</ListItem>
-					) : (
-						<ListItem>
-							<ListItemText className={classes.date} secondary="change date: " />
-							<DatePicker
-								dateType='changed'
-								setDate={setChangeDate}
-								handleKey={datePickerHandleKey}
-								initialDate={changeDate} />
-						</ListItem>
-					)}
+				<ListItem>
+					<ListItemText className={classes.date} secondary="change date: " />
+					<ListItemText primary={formatDate(currentExif?.changeDate)} />
+				</ListItem>
 			</List>
 			<Divider />
 			<List>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Theme, createStyles, makeStyles } from '@material-ui/core/styles'
 import {
 	GridList,
@@ -22,6 +22,7 @@ interface Props {
 	selectedArr: boolean[]
 	setExifDataArr: (exifArr: ExifData[]) => void
 	setSelectedArr: (selectedArr: boolean[]) => void
+	openDrawerByEditSelectedClick: { isOpen: boolean, setIsOpen: (isOpen: boolean) => void }
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -91,6 +92,7 @@ export default function TitlebarGridList({
 	                                         setExifDataArr,
 	                                         selectedArr,
 	                                         setSelectedArr,
+	                                         openDrawerByEditSelectedClick,
                                          }: Props) {
 	const classes = useStyles()
 	const drawerInit: IDrawer = {
@@ -100,12 +102,16 @@ export default function TitlebarGridList({
 	}
 	const [drawer, setDrawer] = useState<IDrawer>(drawerInit)
 	
-	const openDrawer = async (
+	const toggleDrawer = async (
 		isOpen: boolean,
 		file: File = { preview: '' },
 		index: number = 0,
 	) => {
 		let newExif: ExifData | null
+		if (!isOpen && openDrawerByEditSelectedClick.isOpen) {
+			openDrawerByEditSelectedClick.setIsOpen(false)
+			return
+		}
 		
 		if (!exifArr[index].megapixels && isOpen) {
 			const response = await mainApi.getKeywordsFromPhoto(file?.tempPath)
@@ -114,6 +120,7 @@ export default function TitlebarGridList({
 		} else {
 			newExif = exifArr[index]
 		}
+		newExif = {...newExif, ...exifArr[index]} // Переносим в newExif данные, которые могли быть изменены
 		
 		file?.name && updateExifArr({ originalName: file.name }, newExif)
 		setDrawer({
@@ -124,7 +131,29 @@ export default function TitlebarGridList({
 	}
 	
 	const updateExifArr = (changedData: IChangedData, exif: ExifData): void => {
-		const newExifArr = exifArr.map((exifItem, i) => {
+		if (openDrawerByEditSelectedClick.isOpen) {
+			const { newName: name, changeDate, originalDate } = changedData
+			const newExifArr = exifArr.map((exifItem, i) => {
+				if (selectedArr[i]) {
+					const currentExtension = exifItem.name?.slice(-4)
+					return {
+						...exifItem,
+						...(exif.keywords?.length && {keywords: exif.keywords}),
+						...(exif.name && {name: exif.name}),
+						...(name && { name: name + '_' + i + currentExtension }),
+						...(originalDate && { originalDate }),
+						...(changeDate && { changeDate }),
+						...(changeDate && { lastModifiedDate: changeDate }),
+					}
+				} else {
+					return exifItem
+				}
+			})
+			setExifDataArr(newExifArr)
+			return
+		}
+		
+		const newExifArr = exifArr.map(exifItem => {
 			const { originalName, newName: name, changeDate, originalDate } = changedData
 			if (exifItem.name === originalName) {
 				return {
@@ -147,6 +176,14 @@ export default function TitlebarGridList({
 		setSelectedArr(updatedSelectedArr)
 	}
 	
+	useEffect(() => {
+		setDrawer({
+			isOpen: openDrawerByEditSelectedClick.isOpen,
+			file: { preview: '' },
+			exif: { name: '' },
+		})
+	}, [openDrawerByEditSelectedClick.isOpen])
+	
 	if (files.length === 0) return <div></div>
 	
 	return (
@@ -168,7 +205,7 @@ export default function TitlebarGridList({
 									<IconButton
 										aria-label={`info about ${tile.name}`}
 										className={classes.icon}
-										onClick={() => openDrawer(true, tile, i)}
+										onClick={() => toggleDrawer(true, tile, i)}
 									>
 										<InfoIcon />
 									</IconButton>
@@ -197,7 +234,7 @@ export default function TitlebarGridList({
 			<Drawer
 				anchor="left"
 				open={drawer.isOpen}
-				onClose={() => openDrawer(false)}
+				onClose={() => toggleDrawer(false)}
 			>
 				{drawer && drawer.file && drawer.exif ? (
 					<DrawerMenu

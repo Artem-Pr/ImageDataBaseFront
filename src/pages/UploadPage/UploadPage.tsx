@@ -5,7 +5,7 @@ import style from './UploadPage.module.scss'
 import { useDropzone } from 'react-dropzone'
 import mainApi from '../../api/api'
 import Alert from '@material-ui/lab/Alert'
-import { Button, ButtonGroup, LinearProgress } from '@material-ui/core'
+import { Button, ButtonGroup, LinearProgress, Typography } from '@material-ui/core'
 import TitlebarGridList from '../../components/TitlebarGridList/TitlebarGridList'
 import FolderPath from '../../components/FolderPath/FolderPath'
 import { useSelector } from 'react-redux'
@@ -42,6 +42,7 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 	const [showSelectAllBtn, setShowSelectAllBtn] = useState<boolean>(false)
 	const [showEditSelectedBtn, setShowEditSelectedBtn] = useState<boolean>(false)
 	const [selectedArr, setSelectedArr] = useState<boolean[]>([])
+	const [editSelectedClick, setEditSelectedClick] = useState<boolean>(false)
 	const { pathsList } = useSelector((state: RootState) => state.mainReducer)
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		accept: ['image/*', 'video/*'],
@@ -110,6 +111,7 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 			setUploadingError(false)
 			setResponseMessage('Files uploaded successfully')
 			setFiles([])
+			setSelectedArr(prevState => new Array(prevState.length).fill(false))
 		} catch (error) {
 			setUploadingError(true)
 			setResponseMessage('Uploading error')
@@ -161,6 +163,11 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 	
 	return (
 		<div>
+			<div>
+				<Typography color="textPrimary" component="span">
+					{`selected: ${selectedArr.filter(i => i).length}/${files.length}`}
+				</Typography>
+			</div>
 			<div className="d-flex align-items-center">
 				<ButtonGroup color="primary" className="mr-3">
 					<Button
@@ -170,7 +177,12 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 					>
 						{showSelectAllBtn || !files.length ? 'select all' : 'deselect all'}
 					</Button>
-					<Button disabled={!showEditSelectedBtn}>edit selected</Button>
+					<Button
+						disabled={!showEditSelectedBtn}
+						onClick={() => setEditSelectedClick(true)}
+					>
+						edit selected
+					</Button>
 				</ButtonGroup>
 				
 				<FolderPath
@@ -227,6 +239,10 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 					setExifDataArr={setExifDataArr}
 					selectedArr={selectedArr}
 					setSelectedArr={setSelectedArr}
+					openDrawerByEditSelectedClick={{
+						isOpen: editSelectedClick,
+						setIsOpen: setEditSelectedClick,
+					}}
 				/>
 			) : (
 				''
