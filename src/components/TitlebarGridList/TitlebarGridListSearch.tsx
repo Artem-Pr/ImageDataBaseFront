@@ -37,14 +37,14 @@ const useStyles = makeStyles((theme: Theme) =>
 			height: '100%',
 		},
 		//Todo: починить выдвигающиеся данные для фото
-		// gridListTile: {
-		// 	textAlign: 'center',
-		// 	width: '200px !important',
-		// 	overflow: 'hidden',
-		// 	// height: '133px !important',
-		// 	'&:hover .grid-list-tile-bar': {
-		// 		transform: 'translateY(0%)',
-		// 	},
+		gridListTile: {
+			width: '200px !important',
+			// 	textAlign: 'center',
+			// 	overflow: 'hidden',
+			// 	// height: '133px !important',
+			// 	'&:hover .grid-list-tile-bar': {
+			// 		transform: 'translateY(0%)',
+		},
 		// },
 		// gridListTileBar: {
 		// 	height: 'auto',
@@ -138,7 +138,7 @@ const TitlebarGridListSearch = ({
 					<GridListTile
 						key={tile._id}
 						cols={0.25}
-						// className={classes.gridListTile}
+						className={classes.gridListTile}
 					>
 						<img
 							src={tile.preview}

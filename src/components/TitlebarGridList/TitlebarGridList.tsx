@@ -39,6 +39,9 @@ const useStyles = makeStyles((theme: Theme) =>
 			// поставить медиа запросы
 			width: '100%',
 		},
+		gridListTile: {
+			minWidth: 200,
+		},
 		icon: {
 			color: 'rgba(255, 255, 255, 0.54)',
 		},
@@ -120,7 +123,7 @@ export default function TitlebarGridList({
 		} else {
 			newExif = exifArr[index]
 		}
-		newExif = {...newExif, ...exifArr[index]} // Переносим в newExif данные, которые могли быть изменены
+		newExif = { ...newExif, ...exifArr[index] } // Переносим в newExif данные, которые могли быть изменены
 		
 		file?.name && updateExifArr({ originalName: file.name }, newExif)
 		setDrawer({
@@ -138,8 +141,8 @@ export default function TitlebarGridList({
 					const currentExtension = exifItem.name?.slice(-4)
 					return {
 						...exifItem,
-						...(exif.keywords?.length && {keywords: exif.keywords}),
-						...(exif.name && {name: exif.name}),
+						...(exif.keywords?.length && { keywords: exif.keywords }),
+						...(exif.name && { name: exif.name }),
 						...(name && { name: name + '_' + i + currentExtension }),
 						...(originalDate && { originalDate }),
 						...(changeDate && { changeDate }),
@@ -191,7 +194,11 @@ export default function TitlebarGridList({
 			<GridList cellHeight={180} className={classes.gridList}>
 				{files.map((tile, i) =>
 					tile.preview ? (
-						<GridListTile key={tile.preview + i} cols={0.25}>
+						<GridListTile
+							className={classes.gridListTile}
+							key={tile.preview + i}
+							cols={0.25}
+						>
 							<img
 								src={tile.preview}
 								alt={tile.name}

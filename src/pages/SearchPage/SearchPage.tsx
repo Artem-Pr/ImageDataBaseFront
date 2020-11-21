@@ -11,11 +11,12 @@ import KeywordsSearchComp from '../../components/KeywordsSearchComp/KeywordsSear
 import { IDBFileObject, IGallery } from '../../types'
 import TitlebarGridListSearch from '../../components/TitlebarGridList/TitlebarGridListSearch'
 import ImageGallery from 'react-image-gallery'
-import { fetchPhotosByTag } from '../../redux/sliceReducer'
+import { fetchPhotosByTag, setCurrentPage, setNumberPerPage } from '../../redux/sliceReducer'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../redux/rootReducer'
 import Iframe from 'react-iframe'
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles'
+import PaginationElem from '../../components/Pagination/Pagination'
 
 interface IProps {
 	defaultKeywords: string[]
@@ -66,9 +67,18 @@ export const SearchPage = ({ defaultKeywords }: IProps) => {
 	const [showPlayButton, setShowPlayButton] = useState(true)
 	const [showFullscreenButton, setShowFullscreenButton] = useState(true)
 	
-	const { searchPhotosArr } = useSelector((state: RootState) => state.mainReducer)
+	const { searchPhotosArr, searchPagination } = useSelector((state: RootState) => state.mainReducer)
+	const { currentPage, totalPages, nPerPage, resultsCount } = searchPagination
 	const dispatch = useDispatch()
 	const classes = useStyles()
+	
+	const handleCurrentPage = (event: React.ChangeEvent<unknown>, value: number) => {
+		dispatch(setCurrentPage(value))
+	};
+	
+	const handleNumberPerPage = (value: number) => {
+		dispatch(setNumberPerPage(value))
+	}
 	
 	const handlePlay = () => {
 		setShowVideo(true)
@@ -97,8 +107,8 @@ export const SearchPage = ({ defaultKeywords }: IProps) => {
 	}, [classes.iframeStyles, classes.playButton, showVideo])
 	
 	useEffect(() => {
-		dispatch(fetchPhotosByTag(searchTags, excludeTags))
-	}, [dispatch, searchTags, excludeTags])
+		dispatch(fetchPhotosByTag(searchTags, excludeTags, currentPage, nPerPage))
+	}, [dispatch, searchTags, excludeTags, currentPage, nPerPage])
 	
 	useEffect(() => {
 		setGalleryArr(searchPhotosArr.map((item: IDBFileObject) => {
@@ -155,6 +165,15 @@ export const SearchPage = ({ defaultKeywords }: IProps) => {
 					</div>
 				</AccordionDetails>
 			</Accordion>
+			
+			<PaginationElem
+				currentPage={currentPage}
+				totalPages={totalPages}
+				nPerPage={nPerPage}
+				resultsCount={resultsCount}
+				handleCurrentPage={handleCurrentPage}
+				handleNumberPerPage={handleNumberPerPage}
+			/>
 			
 			<TitlebarGridListSearch
 				IDBFilesArr={searchPhotosArr}

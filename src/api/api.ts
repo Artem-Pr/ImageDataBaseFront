@@ -47,11 +47,15 @@ const mainApi = {
 	getPhotosByTags(
 		searchTags: Set<string>,
 		excludeTags: Set<string>,
+		currentPage: number,
+		nPerPage: number
 	): Promise<AxiosResponse<any>> {
 		return instance.get('/filtered-photos', {
 			params: {
 				searchTags: Array.from(searchTags),
 				excludeTags: Array.from(excludeTags),
+				page: currentPage,
+				perPage: nPerPage,
 			},
 		})
 	},
