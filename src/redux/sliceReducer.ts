@@ -29,7 +29,7 @@ const initialState: IState = {
 	searchPhotosArr: [],
 	searchPagination: {
 		currentPage: 1,
-		totalPages: 10,
+		totalPages: 0,
 		nPerPage: 30,
 		resultsCount: 0,
 	},

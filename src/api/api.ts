@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios'
-import { UploadingObject } from '../types'
+import { UpdatedObject, UploadingObject } from '../types'
 
 const instance = axios.create({
 	baseURL: 'http://localhost:5000',
@@ -16,6 +16,14 @@ const mainApi = {
 		return instance.post('/upload', files, {
 			headers: {
 				path: path,
+				'Content-Type': 'application/json',
+			},
+		})
+	},
+	
+	updatePhotos(files: UpdatedObject[]): Promise<AxiosResponse<any>> {
+		return instance.put('/update', files, {
+			headers: {
 				'Content-Type': 'application/json',
 			},
 		})

@@ -26,6 +26,7 @@
     "bootstrap-icons": "^1.0.0-alpha3",
     "date-fns": "^2.16.1",
     "moment": "^2.27.0",
+    "notistack": "^1.0.3",
     "piexifjs": "^1.0.6",
     "prettier": "^2.0.5",
     "react": "^16.13.1",

@@ -5,12 +5,13 @@ import style from './UploadPage.module.scss'
 import { useDropzone } from 'react-dropzone'
 import mainApi from '../../api/api'
 import Alert from '@material-ui/lab/Alert'
-import { Button, ButtonGroup, LinearProgress, Typography } from '@material-ui/core'
+import { Button, LinearProgress } from '@material-ui/core'
 import TitlebarGridList from '../../components/TitlebarGridList/TitlebarGridList'
 import FolderPath from '../../components/FolderPath/FolderPath'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../redux/rootReducer'
 import { formatDate } from '../../common/utils'
+import SelectAll from '../../components/SelectAll/SelectAll'
 
 const useStyles = makeStyles((theme: Theme) =>
 	createStyles({
@@ -19,9 +20,6 @@ const useStyles = makeStyles((theme: Theme) =>
 			'& > * + *': {
 				marginTop: theme.spacing(2),
 			},
-		},
-		selectBtn: {
-			minWidth: 132,
 		},
 	}),
 )
@@ -39,10 +37,8 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 	const [responseMessage, setResponseMessage] = useState('')
 	const [uploadingError, setUploadingError] = useState<boolean>(false)
 	const [finalPath, setFinalPath] = useState<string>('')
-	const [showSelectAllBtn, setShowSelectAllBtn] = useState<boolean>(false)
-	const [showEditSelectedBtn, setShowEditSelectedBtn] = useState<boolean>(false)
-	const [selectedArr, setSelectedArr] = useState<boolean[]>([])
 	const [editSelectedClick, setEditSelectedClick] = useState<boolean>(false)
+	const [selectedArr, setSelectedArr] = useState<boolean[]>([])
 	const { pathsList } = useSelector((state: RootState) => state.mainReducer)
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		accept: ['image/*', 'video/*'],
@@ -119,11 +115,6 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 		}
 	}
 	
-	const handleSelectAll = () => {
-		setSelectedArr(prevState =>
-			new Array(prevState.length).fill(showSelectAllBtn))
-	}
-	
 	useEffect(() => {
 		const exifArr = files.map((file) => {
 			const {
@@ -145,52 +136,20 @@ export const UploadPage = ({ keywords: defaultKeywords }: IProps) => {
 		setExifDataArr(exifArr)
 	}, [files, progress])
 	
-	useEffect(() => {
-		if (files.length) {
-			setShowSelectAllBtn(true)
-			setSelectedArr(prevState => {
-				if (prevState.length !== files.length)
-					return new Array(files.length).fill(false)
-				else return prevState
-			})
-		}
-	}, [files])
-	
-	useEffect(() => {
-		setShowSelectAllBtn(selectedArr.includes(false))
-		setShowEditSelectedBtn(selectedArr.includes(true))
-	}, [selectedArr])
-	
 	return (
 		<div>
-			<div>
-				<Typography color="textPrimary" component="span">
-					{`selected: ${selectedArr.filter(i => i).length}/${files.length}`}
-				</Typography>
-			</div>
-			<div className="d-flex align-items-center">
-				<ButtonGroup color="primary" className="mr-3">
-					<Button
-						className={classes.selectBtn}
-						onClick={handleSelectAll}
-						disabled={!files.length}
-					>
-						{showSelectAllBtn || !files.length ? 'select all' : 'deselect all'}
-					</Button>
-					<Button
-						disabled={!showEditSelectedBtn}
-						onClick={() => setEditSelectedClick(true)}
-					>
-						edit selected
-					</Button>
-				</ButtonGroup>
-				
-				<FolderPath
-					pathsList={pathsList}
-					finalPath={finalPath}
-					setFinalPath={setFinalPath}
-				/>
-			</div>
+			<SelectAll
+				selectedArr={selectedArr}
+				setSelectedArr={setSelectedArr}
+				setEditSelectedClick={setEditSelectedClick}
+				files={files}
+			/>
+			
+			<FolderPath
+				pathsList={pathsList}
+				finalPath={finalPath}
+				setFinalPath={setFinalPath}
+			/>
 			<div {...getRootProps({ className: style.dropzone })}>
 				<input {...getInputProps()} />
 				{isDragActive ? (

@@ -10,18 +10,19 @@ import {
 	Paper,
 } from '@material-ui/core'
 import InfoIcon from '@material-ui/icons/Info'
-import { File, ExifData, IDrawer, IChangedData } from '../../types'
+import { File, ExifData, IDrawer } from '../../types'
 import DrawerMenu from '../DrawerMenu/DrawerMenu'
 import mainApi from '../../api/api'
 import moment from 'moment'
+import { updateExifArr } from '../../common/utils'
 
 interface Props {
 	defaultKeywords: string[]
 	files: File[]
 	exifArr: ExifData[]
 	selectedArr: boolean[]
-	setExifDataArr: (exifArr: ExifData[]) => void
-	setSelectedArr: (selectedArr: boolean[]) => void
+	setExifDataArr: React.Dispatch<React.SetStateAction<ExifData[]>>
+	setSelectedArr: React.Dispatch<React.SetStateAction<boolean[]>>
 	openDrawerByEditSelectedClick: { isOpen: boolean, setIsOpen: (isOpen: boolean) => void }
 }
 
@@ -68,9 +69,11 @@ const useStyles = makeStyles((theme: Theme) =>
 )
 
 const prepareExif = (rawExif: any, file: File | null): ExifData => {
-	const originalDate = rawExif.DateTimeOriginal ?
+	const { DateTimeOriginal, CreateDate, MediaCreateDate } = rawExif // try to get all possible fields
+	const exifOriginalDate = DateTimeOriginal || CreateDate || MediaCreateDate
+	const originalDate = exifOriginalDate ?
 		// @ts-ignore
-		moment(rawExif.DateTimeOriginal, 'YYYY:MM:DD hh:mm:ss')._d
+		moment(exifOriginalDate, 'YYYY:MM:DD hh:mm:ss')._d
 		: null
 	let keywords = rawExif?.Keywords
 	if (keywords && !Array.isArray(keywords)) keywords = [keywords]
@@ -125,52 +128,19 @@ export default function TitlebarGridList({
 		}
 		newExif = { ...newExif, ...exifArr[index] } // Переносим в newExif данные, которые могли быть изменены
 		
-		file?.name && updateExifArr({ originalName: file.name }, newExif)
+		file?.name && updateExifArr(
+			{ originalName: file.name },
+			newExif,
+			openDrawerByEditSelectedClick,
+			exifArr,
+			selectedArr,
+			setExifDataArr,
+		)
 		setDrawer({
 			file,
 			exif: newExif,
 			isOpen,
 		})
-	}
-	
-	const updateExifArr = (changedData: IChangedData, exif: ExifData): void => {
-		if (openDrawerByEditSelectedClick.isOpen) {
-			const { newName: name, changeDate, originalDate } = changedData
-			const newExifArr = exifArr.map((exifItem, i) => {
-				if (selectedArr[i]) {
-					const currentExtension = exifItem.name?.slice(-4)
-					return {
-						...exifItem,
-						...(exif.keywords?.length && { keywords: exif.keywords }),
-						...(exif.name && { name: exif.name }),
-						...(name && { name: name + '_' + i + currentExtension }),
-						...(originalDate && { originalDate }),
-						...(changeDate && { changeDate }),
-						...(changeDate && { lastModifiedDate: changeDate }),
-					}
-				} else {
-					return exifItem
-				}
-			})
-			setExifDataArr(newExifArr)
-			return
-		}
-		
-		const newExifArr = exifArr.map(exifItem => {
-			const { originalName, newName: name, changeDate, originalDate } = changedData
-			if (exifItem.name === originalName) {
-				return {
-					...exif,
-					...(name && { name }),
-					...(originalDate && { originalDate }),
-					...(changeDate && { changeDate }),
-					lastModifiedDate: changeDate || null,
-				}
-			} else {
-				return exifItem
-			}
-		})
-		setExifDataArr(newExifArr)
 	}
 	
 	const handleSelect = (index: number) => {
@@ -187,7 +157,7 @@ export default function TitlebarGridList({
 		})
 	}, [openDrawerByEditSelectedClick.isOpen])
 	
-	if (files.length === 0) return <div></div>
+	if (files.length === 0) return <div />
 	
 	return (
 		<div className={classes.root}>
@@ -201,16 +171,16 @@ export default function TitlebarGridList({
 						>
 							<img
 								src={tile.preview}
-								alt={tile.name}
+								alt={exifArr[i]?.name || tile.name}
 								className={classes.image}
 								onClick={() => handleSelect(i)}
 							/>
 							<GridListTileBar
 								className={selectedArr[i] ? classes.gridListMenuSelected : ''}
-								title={tile.name}
+								title={exifArr[i]?.name || tile.name}
 								actionIcon={
 									<IconButton
-										aria-label={`info about ${tile.name}`}
+										aria-label={`info about ${exifArr[i]?.name || tile.name}`}
 										className={classes.icon}
 										onClick={() => toggleDrawer(true, tile, i)}
 									>
@@ -247,7 +217,10 @@ export default function TitlebarGridList({
 					<DrawerMenu
 						defaultKeywords={defaultKeywords}
 						exif={drawer.exif}
-						updateExifArr={updateExifArr}
+						openDrawerByEditSelectedClick={openDrawerByEditSelectedClick}
+						exifArr={exifArr}
+						selectedArr={selectedArr}
+						setExifDataArr={setExifDataArr}
 					/>
 				) : (
 					''

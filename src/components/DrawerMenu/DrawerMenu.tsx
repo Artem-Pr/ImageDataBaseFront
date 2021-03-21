@@ -19,12 +19,15 @@ import {
 } from '@material-ui/core'
 import { Close } from '@material-ui/icons'
 import DatePicker from '../DatePicker/DatePicker'
-import { formatDate } from '../../common/utils'
+import { formatDate, updateExifArr } from '../../common/utils'
 
 interface Props {
 	defaultKeywords: string[]
 	exif: ExifData
-	updateExifArr: (changedData: IChangedData, exif: ExifData) => void
+	openDrawerByEditSelectedClick: { isOpen: boolean, setIsOpen: (isOpen: boolean) => void },
+	exifArr: ExifData[],
+	selectedArr: boolean[],
+	setExifDataArr: React.Dispatch<React.SetStateAction<ExifData[]>>,
 }
 
 const fileSizeToString = (size: number): string => {
@@ -60,7 +63,10 @@ const useStyles = makeStyles((theme: Theme) =>
 export default function DrawerMenu({
 	                                   defaultKeywords,
 	                                   exif,
-	                                   updateExifArr,
+	                                   openDrawerByEditSelectedClick,
+	                                   exifArr,
+	                                   selectedArr,
+	                                   setExifDataArr,
                                    }: Props) {
 	const classes = useStyles()
 	const [showAddKeywordField, setShowAddKeywordField] = useState<Boolean>(false)
@@ -89,7 +95,14 @@ export default function DrawerMenu({
 			...currentExif,
 			keywords: Array.from(currentKeywordsSet),
 		}
-		updateExifArr(getChangedData(), newExif)
+		updateExifArr(
+			getChangedData(),
+			newExif,
+			openDrawerByEditSelectedClick,
+			exifArr,
+			selectedArr,
+			setExifDataArr,
+		)
 		setCurrentExif(newExif)
 	}
 	
@@ -128,15 +141,18 @@ export default function DrawerMenu({
 	}
 	
 	const getChangedData: () => IChangedData = useCallback(() => {
-		const extension = exif.name?.slice(-4)
+		const extension = '.' + exif.name?.split('.')[1]
 		return {
-			originalName,
+			_id: exif._id,
+			...(!exif._id && originalName && { originalName }),
 			...newName && { newName: newName + extension },
 			...originalDate && { originalDate },
 		}
-	}, [exif.name, originalName, newName, originalDate])
+	}, [exif.name, exif._id, originalName, newName, originalDate])
 	
-	
+	// console.log('exif', exif)
+	// console.log('newName', newName)
+	// console.log('originalName', originalName)
 	return (
 		<div role="presentation" className={classes.list}>
 			<List>

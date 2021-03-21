@@ -4,7 +4,7 @@ import {
 	AccordionSummary,
 	Typography,
 	AccordionDetails,
-	Dialog,
+	Dialog, ButtonGroup, Button,
 } from '@material-ui/core'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import KeywordsSearchComp from '../../components/KeywordsSearchComp/KeywordsSearchComp'
@@ -17,6 +17,8 @@ import { RootState } from '../../redux/rootReducer'
 import Iframe from 'react-iframe'
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles'
 import PaginationElem from '../../components/Pagination/Pagination'
+import SelectAll from '../../components/SelectAll/SelectAll'
+import TitlebarGridList from '../../components/TitlebarGridList/TitlebarGridList'
 
 interface IProps {
 	defaultKeywords: string[]
@@ -66,6 +68,8 @@ export const SearchPage = ({ defaultKeywords }: IProps) => {
 	const [showVideo, setShowVideo] = useState(false)
 	const [showPlayButton, setShowPlayButton] = useState(true)
 	const [showFullscreenButton, setShowFullscreenButton] = useState(true)
+	const [editSelectedClick, setEditSelectedClick] = useState<boolean>(false)
+	const [selectedArr, setSelectedArr] = useState<boolean[]>([])
 	
 	const { searchPhotosArr, searchPagination } = useSelector((state: RootState) => state.mainReducer)
 	const { currentPage, totalPages, nPerPage, resultsCount } = searchPagination
@@ -74,7 +78,7 @@ export const SearchPage = ({ defaultKeywords }: IProps) => {
 	
 	const handleCurrentPage = (event: React.ChangeEvent<unknown>, value: number) => {
 		dispatch(setCurrentPage(value))
-	};
+	}
 	
 	const handleNumberPerPage = (value: number) => {
 		dispatch(setNumberPerPage(value))
@@ -134,8 +138,26 @@ export const SearchPage = ({ defaultKeywords }: IProps) => {
 		setShowVideo(false)
 	}
 	
+	const Pagination = () => {
+		if (!totalPages) return <div />
+		return <PaginationElem
+			currentPage={currentPage}
+			totalPages={totalPages}
+			nPerPage={nPerPage}
+			resultsCount={resultsCount}
+			handleCurrentPage={handleCurrentPage}
+			handleNumberPerPage={handleNumberPerPage}
+		/>
+	}
 	return (
 		<div className="d-flex flex-column my-3">
+			<SelectAll
+				selectedArr={selectedArr}
+				setSelectedArr={setSelectedArr}
+				setEditSelectedClick={setEditSelectedClick}
+				files={searchPhotosArr}
+			/>
+			
 			<Accordion className="w-50">
 				<AccordionSummary expandIcon={<ExpandMoreIcon />}>
 					<div>
@@ -166,20 +188,21 @@ export const SearchPage = ({ defaultKeywords }: IProps) => {
 				</AccordionDetails>
 			</Accordion>
 			
-			<PaginationElem
-				currentPage={currentPage}
-				totalPages={totalPages}
-				nPerPage={nPerPage}
-				resultsCount={resultsCount}
-				handleCurrentPage={handleCurrentPage}
-				handleNumberPerPage={handleNumberPerPage}
-			/>
+			<Pagination />
 			
 			<TitlebarGridListSearch
 				IDBFilesArr={searchPhotosArr}
 				imageClick={imageClick}
 				keywordsList={keywordsList}
+				selectedArr={selectedArr}
+				setSelectedArr={setSelectedArr}
+				openDrawerByEditSelectedClick={{
+					isOpen: editSelectedClick,
+					setIsOpen: setEditSelectedClick,
+				}}
 			/>
+			
+			<Pagination />
 			
 			<Dialog
 				open={isGalleryShow}

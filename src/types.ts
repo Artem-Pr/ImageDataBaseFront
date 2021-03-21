@@ -1,4 +1,6 @@
 export type fileType = 'image/jpeg'
+export type DateType = 'original' | 'changed'
+export type DialogType = 'alert' | 'notify'
 
 export interface UploadingObject {
 	name: string
@@ -6,6 +8,15 @@ export interface UploadingObject {
 	size: number
 	type: string
 	keywords: string[] | null
+}
+export interface UpdatedObject {
+	id: string
+	updatedFields: {
+		originalName?: string
+		filePath?: string
+		originalDate?: string
+		keywords?: string[]
+	}
 }
 
 export interface BaseFile {
@@ -24,6 +35,7 @@ export interface File extends BaseFile {
 }
 
 export interface ExifData extends BaseFile {
+	_id?: string
 	changeDate?: Date
 	originalDate?: Date
 	keywords?: string[]
@@ -51,7 +63,7 @@ export interface IDBFileObject {
 
 export interface IGallery {
 	thumbnail: string
-	original?: string
+	original: string
 	renderItem?: () => any
 }
 
@@ -59,13 +71,20 @@ export interface IDrawer {
 	isOpen: boolean
 	file: File
 	exif: ExifData
+	index?: number
 }
 
 export interface IChangedData {
-	originalName: string
+	originalName?: string
+	_id?: string
 	newName?: string
 	originalDate?: Date
 	changeDate?: Date
 }
 
-export type DateType = 'original' | 'changed'
+export interface IIdentifierObject {
+	id: string
+	name: string
+	originalName: string
+	originalPath: string
+}
